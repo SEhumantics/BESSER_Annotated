@@ -38,6 +38,8 @@ class PydanticGenerator(GeneratorInterface):
                           trim_blocks=True, lstrip_blocks=True, extensions=['jinja2.ext.do'])
         template = env.get_template('pydantic_classes_template.py.j2')
         with open(file_path, mode="w") as f:
-            generated_code = template.render(classes=self.model.classes_sorted_by_inheritance(), backend=self.backend, nested_creations=self.nested_creations)
+            generated_code = template.render(classes=self.model.classes_sorted_by_inheritance(),
+                                             enumerations=self.model.enumerations, backend=self.backend,
+                                             nested_creations=self.nested_creations)
             f.write(generated_code)
             print("Code generated in the location: " + file_path)

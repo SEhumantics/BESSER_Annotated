@@ -1,6 +1,9 @@
 from datetime import datetime, date
-from typing import List, Optional, Union,Set
+from typing import List, Optional, Union, Set
 from pydantic import BaseModel
+{% if enumerations %}
+from enum import Enum
+{% endif %}
 
 ############################################
 #
@@ -33,11 +36,9 @@ class {{ class.name }}{% if backend %}Create{% endif %}{% if class.parents() %}(
             {% endif %}
         {% endif %}
     {% endfor -%}
-
     {% if not ns.id_found and not ns.same_name_found and not backend %}
     id: int  # id created
     {% endif -%}
-
     {% for association in class.associations %}
         {% if association.ends|length == 2 and association.name not in processed_associations %}
             {% set ns = namespace(end1=None, end2=None) %}
@@ -47,7 +48,6 @@ class {{ class.name }}{% if backend %}Create{% endif %}{% if class.parents() %}(
             {% endfor %}
             {% set class1_name = ns.end1.type.name %}
             {% set class2_name = ns.end2.type.name %}
-
             {% if ns.end1.multiplicity.max > 1 and ns.end2.multiplicity.max > 1 %}
             {% if nested_creations %}
             {% if backend %}
@@ -58,27 +58,31 @@ class {{ class.name }}{% if backend %}Create{% endif %}{% if class.parents() %}(
             {% else %}
     {{ class2_name.lower() }}s_id: List[int]
             {% endif %}
-
             {% elif ns.end1.multiplicity.max > 1 and ns.end2.multiplicity.max == 1 %}
             {% if not backend %}
     {{ class2_name.lower() }}_id: int  # N:1 Relationship
             {% else %}
     {{ class2_name.lower() }}_id: int
             {% endif %}
-
             {% elif ns.end1.multiplicity.max == 1 and ns.end2.multiplicity.max == 1 and not backend %}
     {{ class2_name.lower() }}: "{{ class2_name }}"  # 1:1 Relationship
             {% endif %}
-            
+
         {% if not backend %}
                     {% do processed_associations.append(association.name) %}
         {% endif %}
         {% endif %}
     {% endfor %}
-
     {% if not class.attributes %}
     pass
     {% endif %} 
 {# Two newlines are added here unconditionally #}
+{% endfor %}
 
+{% for enum in enumerations %}
+class {{ enum.name }}(str, Enum):
+    {% for literal in enum.literals %}
+    {{ literal.name }}: "{{ literal.name }}"
+    {% endfor %}
+{# Two newlines are added here unconditionally #}
 {% endfor %}
