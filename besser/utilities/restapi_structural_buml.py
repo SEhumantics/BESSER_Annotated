@@ -7,13 +7,13 @@ from sqlalchemy import create_engine, Column, Integer, LargeBinary, String
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from besser.BUML.metamodel.structural import (DomainModel, Class, Property, PrimitiveDataType, Multiplicity,
                                               Association, BinaryAssociation, Generalization, EnumerationLiteral,
-                                              Enumeration, Package, Constraint, NamedElement)
+                                              Enumeration, Package, Constraint, NamedElement, Method, Type, Parameter)
 from besser.generators.pydantic_classes import PydanticGenerator
 
 from fastapi.middleware.cors import CORSMiddleware
 
 # Database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./RESTAPI.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./__domain_model_database__.db"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -56,7 +56,7 @@ class MethodCreate(BaseModel):
     visibility: str = 'public'
     is_abstract: bool = False
     parameters: List[ParameterCreate] = []
-    return_type: str = None
+    type: str = None
     code: str = ""
 
 class ClassCreate(BaseModel):
@@ -68,7 +68,7 @@ class ClassCreate(BaseModel):
 
 class AssociationCreate(BaseModel):
     name: str
-    ends: List[PropertyCreate] = None
+    ends: List[PropertyCreate]
 
 class BinaryAssociationCreate(BaseModel):
     name: str
@@ -111,15 +111,6 @@ class DomainModelCreate(BaseModel):
 app = FastAPI()
 
 
-# Allow all origins (for development purposes)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Dependency to get the database session
 def get_db():
     db = SessionLocal()
@@ -128,13 +119,6 @@ def get_db():
     finally:
         db.close()
 
-# Utility function to check if a string is an integer
-def isint(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
 
 # Endpoint to create a class
 @app.post("/classes/")
@@ -142,26 +126,50 @@ def create_class(class_data: ClassCreate):
     if class_data.name in db_classes:
         raise HTTPException(status_code=400, detail="Class already exists")
 
-    properties = [
-        Property(
-            name=property_data.name,
-            type=PrimitiveDataType(property_data.property_type),
-            multiplicity=Multiplicity(property_data.multiplicity[0], property_data.multiplicity[1]),
-            visibility=property_data.visibility,
-            is_composite=property_data.is_composite,
-            is_navigable=property_data.is_navigable,
-            is_id=property_data.is_id,
-            is_read_only=property_data.is_read_only
-        ) for property_data in class_data.properties
-    ]
+    properties = []
+    for property_data in class_data.properties:
+        try:
+            new_property_type = PrimitiveDataType(property_data.property_type)
+        except ValueError:
+            if property_data.property_type not in db_enumerations:
+                raise HTTPException(status_code=400,
+                                    detail=f"Property type {property_data.property_type} does not exist")
+            new_property_type = db_enumerations[property_data.property_type]
+
+        properties.append(
+            Property(
+                name=property_data.name,
+                type=new_property_type,
+                multiplicity=Multiplicity(property_data.multiplicity[0], property_data.multiplicity[1]),
+                visibility=property_data.visibility,
+                is_composite=property_data.is_composite,
+                is_navigable=property_data.is_navigable,
+                is_id=property_data.is_id,
+                is_read_only=property_data.is_read_only
+            )
+        )
+    parameters = []
+    for method_data in class_data.methods:
+
+        for param in method_data.parameters:
+            try:
+                param_type = PrimitiveDataType(param.parameter_type)
+            except ValueError:
+                if param.parameter_type in db_classes:
+                    param_type = db_classes[param.parameter_type]
+                elif param.parameter_type in db_enumerations:
+                    param_type = db_enumerations[param.parameter_type]
+                else:
+                    raise HTTPException(status_code=400, detail=f"Parameter type {param.parameter_type} does not exist")
+            parameters.append(Parameter(name=param.name, type=param_type))
 
     methods = [
         Method(
             name=method_data.name,
             visibility=method_data.visibility,
             is_abstract=method_data.is_abstract,
-            parameters={Parameter(name=param.name, type=PrimitiveDataType(param.parameter_type)) for param in method_data.parameters},
-            type=PrimitiveDataType(method_data.return_type) if method_data.return_type else None,
+            parameters=set(parameters),
+            type=Type(method_data.type),
             code=method_data.code
         ) for method_data in class_data.methods
     ]
@@ -208,7 +216,7 @@ def get_classes():
                         {"name": param.name, "type": param.type.name}
                         for param in meth.parameters
                     ],
-                    "return_type": meth.type.name if meth.type else None,
+                    "type": meth.type.name if meth.type else None,
                     "code": meth.code,
                 }
                 for meth in class_obj.methods
@@ -261,6 +269,88 @@ def get_class(class_name: str):
     class_obj = db_classes[class_name]
     class_dict = class_to_dict(class_obj)
     return jsonable_encoder(class_dict)
+
+@app.put("/classes/{class_id}")
+def update_class(class_id: str, class_data: ClassCreate):
+    if class_id not in db_classes:
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    existing_class = db_classes[class_id]
+
+    if class_id != class_data.name:
+        if class_data.name in db_classes:
+            raise HTTPException(status_code=400, detail="Class with the new name already exists")
+        db_classes[class_data.name] = db_classes.pop(class_id)
+        existing_class.name = class_data.name
+
+    existing_properties = {prop.name: prop for prop in existing_class.attributes}
+    existing_methods = {meth.name: meth for meth in existing_class.methods}
+
+    new_properties = {}
+    for property_data in class_data.properties:
+        try:
+            new_property_type = PrimitiveDataType(property_data.property_type)
+        except ValueError:
+            if property_data.property_type not in db_enumerations:
+                raise HTTPException(status_code=400,
+                                    detail=f"Property type {property_data.property_type} does not exist")
+            new_property_type = db_enumerations[property_data.property_type]
+
+        if property_data.name in existing_properties:
+            property = existing_properties[property_data.name]
+            property.type = new_property_type
+            property.multiplicity = Multiplicity(property_data.multiplicity[0], property_data.multiplicity[1])
+            property.visibility = property_data.visibility
+            property.is_composite = property_data.is_composite
+            property.is_navigable = property_data.is_navigable
+            property.is_id = property_data.is_id
+            property.is_read_only = property_data.is_read_only
+            new_properties[property_data.name] = property
+        else:
+            new_property = Property(
+                name=property_data.name,
+                type=new_property_type,
+                multiplicity=Multiplicity(property_data.multiplicity[0], property_data.multiplicity[1]),
+                visibility=property_data.visibility,
+                is_composite=property_data.is_composite,
+                is_navigable=property_data.is_navigable,
+                is_id=property_data.is_id,
+                is_read_only=property_data.is_read_only
+            )
+            new_properties[property_data.name] = new_property
+
+    existing_class.attributes = set(new_properties.values())
+
+    new_methods = {}
+    for method_data in class_data.methods:
+        if method_data.name in existing_methods:
+            method = existing_methods[method_data.name]
+            method.visibility = method_data.visibility
+            method.is_abstract = method_data.is_abstract
+            method.parameters = {Parameter(name=param.name, type=PrimitiveDataType(param.parameter_type)) for param in method_data.parameters}
+            method.type = PrimitiveDataType(method_data.return_type) if method_data.return_type else None
+            method.code = method_data.code
+            new_methods[method_data.name] = method
+        else:
+            new_method = Method(
+                name=method_data.name,
+                visibility=method_data.visibility,
+                is_abstract=method_data.is_abstract,
+                parameters={Parameter(name=param.name, type=PrimitiveDataType(param.parameter_type)) for param in method_data.parameters},
+                type=PrimitiveDataType(method_data.return_type) if method_data.return_type else None,
+                code=method_data.code
+            )
+            new_methods[method_data.name] = new_method
+
+    existing_class.methods = set(new_methods.values())
+
+    existing_class.is_abstract = class_data.is_abstract
+    existing_class.is_read_only = class_data.is_read_only
+
+    return get_class(class_data.name)
+
+
+
 
 # Endpoint to create an association
 @app.post("/associations/")
@@ -346,6 +436,53 @@ def get_association(association_name: str):
     association_dict = association_to_dict(association_obj)
     return jsonable_encoder(association_dict)
 
+@app.put("/associations/{association_id}")
+def update_association(association_id: str, association_data: AssociationCreate):
+    if association_id not in db_associations:
+        raise HTTPException(status_code=404, detail="Association not found")
+
+    existing_association = db_associations[association_id]
+
+    if association_id != association_data.name:
+        if association_data.name in db_associations:
+            raise HTTPException(status_code=400, detail="Association with the new name already exists")
+        db_associations[association_data.name] = db_associations.pop(association_id)
+        existing_association.name = association_data.name
+
+    existing_ends = {end.name: end for end in existing_association.ends}
+
+    new_ends = []
+    for end_data in association_data.ends:
+        if end_data.property_type not in db_classes:
+            raise HTTPException(status_code=400, detail=f"Property type {end_data.property_type} does not exist")
+
+        if end_data.name in existing_ends:
+            end = existing_ends[end_data.name]
+            end.type = db_classes[end_data.property_type]
+            end.multiplicity = Multiplicity(end_data.multiplicity[0], end_data.multiplicity[1])
+            end.visibility = end_data.visibility
+            end.is_composite = end_data.is_composite
+            end.is_navigable = end_data.is_navigable
+            end.is_id = end_data.is_id
+            end.is_read_only = end_data.is_read_only
+        else:
+            end = Property(
+                name=end_data.name,
+                type=db_classes[end_data.property_type],
+                multiplicity=Multiplicity(end_data.multiplicity[0], end_data.multiplicity[1]),
+                visibility=end_data.visibility,
+                is_composite=end_data.is_composite,
+                is_navigable=end_data.is_navigable,
+                is_id=end_data.is_id,
+                is_read_only=end_data.is_read_only
+            )
+        new_ends.append(end)
+
+    existing_association.ends = new_ends
+
+    return get_association(association_data.name)
+
+# Binary Associations
 # Endpoint to create a binary association
 @app.post("/binary_associations/")
 def create_binary_association(association_data: BinaryAssociationCreate):
@@ -378,6 +515,7 @@ def create_binary_association(association_data: BinaryAssociationCreate):
 
     return {"id": association_data.name, "message": "Binary Association stored successfully"}
 
+# Generalizations
 # Endpoint to create a generalization
 @app.post("/generalizations/")
 def create_generalization(generalization_data: GeneralizationCreate):
@@ -425,6 +563,8 @@ def get_generalization(general_name: str, specific_name: str):
 
     raise HTTPException(status_code=404, detail="Generalization not found")
 
+
+# Enumerations
 # Endpoint to create an enumeration
 @app.post("/enumerations/")
 def create_enumeration(enumeration_data: EnumerationCreate):
@@ -457,6 +597,8 @@ def get_enumeration(enumeration_name: str):
     enumeration_dict = enumeration_to_dict(enumeration_obj)
     return jsonable_encoder(enumeration_dict)
 
+
+# Packages
 # Endpoint to create a package
 @app.post("/packages/")
 def create_package(package_data: PackageCreate):
@@ -501,6 +643,8 @@ def get_package(package_name: str):
     package_dict = package_to_dict(package_obj)
     return jsonable_encoder(package_dict)
 
+
+# Constraints
 # Endpoint to create a constraint
 @app.post("/constraints/")
 def create_constraint(constraint_data: ConstraintCreate):
@@ -553,6 +697,8 @@ def get_constraint(constraint_name: str):
     constraint_dict = constraint_to_dict(constraint_obj)
     return jsonable_encoder(constraint_dict)
 
+
+# Domain Models
 # Endpoint to create a domain model
 @app.post("/domainmodels/")
 def create_domain_model(domain_model_data: DomainModelCreate, db: Session = Depends(get_db)):
