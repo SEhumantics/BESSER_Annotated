@@ -1196,6 +1196,12 @@ class DomainModel(Model):
         else:
             self.__types = set()
 
+    def get_type_by_name(self, type_name: str) -> Type:
+        """Type: Gets an Type by name."""
+        return next(
+            (type_element for type_element in self.types if type_element.name == type_name), None
+            )
+
     @property
     def associations(self) -> set[Association]:
         """set[Association]: Get the set of associations in the domain model."""
@@ -1250,6 +1256,12 @@ class DomainModel(Model):
             self.__enumerations = enumerations
         else:
             self.__enumerations = set()
+
+    def get_enum_by_name(self, enum_name: str) -> Enumeration:
+        """Enumeration: Gets an enumeration by name."""
+        return next(
+            (enum for enum in self.enumerations if enum.name == enum_name), None
+            )
 
     @property
     def packages(self) -> set[Package]:
