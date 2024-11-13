@@ -73,6 +73,18 @@ def build_associations(associations: list[dict], entities: list[dict], buml_mode
 
     return result_associations
 
+def build_generalizations(entities: list[dict], buml_model: DomainModel) -> set[Generalization]:
+    """Builds generalizations from Mendix JSON data."""
+    result_generalizations = set()
+
+    for entity in entities:
+        if entity.get("generalization").get("generalization"):
+            general = buml_model.get_class_by_name(entity.get("generalization").get("generalization").split(".")[1])
+            specific = buml_model.get_class_by_name(entity.get("name"))
+            new_generalization: Generalization = Generalization(general, specific)
+            print(entity.get("generalization").get("generalization"))
+            result_generalizations.add(new_generalization)
+    return result_generalizations
 
 def mendix_to_buml(json_path: str, module_name: str, encoding: str = "utf-16") -> DomainModel:
     """Converts a Mendix JSON model to a B-UML domain model."""
@@ -106,5 +118,7 @@ def mendix_to_buml(json_path: str, module_name: str, encoding: str = "utf-16") -
                             buml_model=b_uml_model))
     b_uml_model.associations = build_associations(mx_model.get("associations"),
                             mx_model.get("entities"), buml_model=b_uml_model)
+    b_uml_model.generalizations = build_generalizations(mx_model.get("entities"),
+                            buml_model=b_uml_model)
 
     return b_uml_model
