@@ -1,159 +1,322 @@
+import time
 from abc import ABC
 from datetime import datetime, timedelta
-from typing import Any, Union, List
-import time
+from typing import Any, Dict, List, Set, Union
 
-# constant
-UNLIMITED_MAX_MULTIPLICITY = 9999
+# Constant - Represents the unlimited value for the maximum multiplicity (capped at 9999).
+UNLIMITED_MAX_MULTIPLICITY: int = int(9999)
+
 
 class Element(ABC):
-    pass
+    """The `Element` class is the superclass of all structural elements in the B-UML metamodel.
 
-class NamedElement(Element):
-    """The NamedElement is the Superclass of all structural elements with a name.
-
-    Args:
-        name (str): The name of the named element
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the named element (None as default).
-        visibility (str): Determines the kind of visibility of the named element (public as default).
-
-    Attributes:
-        name (str): The name of the named element
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the named element (None as default).
-        visibility: Determines the kind of visibility of the named element (public as default).
+    Notes
+    -----
+    This class is an abstract class and should not be instantiated.
     """
 
-    def __init__(self, name: str, timestamp: datetime = None, synonyms: List[str] = None, visibility: str = "public"):
+    pass
+
+
+class NamedElement(Element):
+    """The `NamedElement` class is the superclass of all structural elements with a name.
+
+    This class inherits from the `Element` class.
+
+    Attributes
+    ----------
+    name : str
+        The name of the named element.
+
+    timestamp : datetime
+        The object creation datetime. By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the named element. By default it is `None`.
+
+    visibility : str
+        Determines the kind of visibility of the named element. By default it is `public`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the named element.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the named element.
+
+    visibility : str, optional
+        Determines the kind of visibility of the named element.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+        visibility: str = "public",
+    ):
+        """Initialize an instace of the `NamedElement` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Set the name of the named element.
         self.name: str = name
-        self.timestamp: datetime = timestamp if timestamp is not None else datetime.now() + \
-                         timedelta(microseconds=(time.perf_counter_ns() % 1_000_000) / 1000)
+
+        # Set the timestamp of the named element.
+        # If the timestamp is not provided, it is set to the time when the object is created.
+        self.timestamp: datetime = (
+            timestamp
+            if timestamp is not None
+            else datetime.now()
+            + timedelta(microseconds=(time.perf_counter_ns() % 1_000_000) / 1000)
+        )
+
+        # Set the list of synonyms of the named element.
         self.synonyms: List[str] = synonyms
+
+        # Set the visibility of the named element.
         self.visibility: str = visibility
 
     @property
     def name(self) -> str:
-        """str: Get the name of the named element."""
+        """Get the name of the named element.
+
+        Returns
+        -------
+        name : str
+            The name of the named element.
+        """
+        # Return the name of the named element.
         return self.__name
 
     @name.setter
     def name(self, name: str):
-        """str: Set the name of the named element."""
+        """Set the name of the named element.
+
+        Parameters
+        ----------
+        name : str
+            The name of the named element.
+        """
+        # Set the name of the named element.
         self.__name = name
 
     @property
     def timestamp(self) -> datetime:
-        """str: Get the timestamp of the named element."""
-        return self.__datestamp
+        """Get the timestamp of the named element.
+
+        Returns
+        -------
+        timestamp : datetime
+            The object creation datetime.
+        """
+        # Return the timestamp of the named element.
+        return self.__timestamp
 
     @timestamp.setter
     def timestamp(self, timestamp: datetime):
-        """str: Set the timestamp of the named element."""
-        self.__datestamp = timestamp
+        """Set the timestamp of the named element.
+
+        Parameters
+        ----------
+        timestamp : datetime
+            The object creation datetime.
+        """
+        # Set the timestamp of the named element.
+        self.__timestamp = timestamp
 
     @property
     def visibility(self) -> str:
-        """str: Get the visibility of the named element."""
+        """Get the visibility of the named element.
+
+        Returns
+        -------
+        visibility : str
+            The visibility of the named element.
+        """
+        # Return the visibility of the named element.
         return self.__visibility
 
     @visibility.setter
     def visibility(self, visibility: str):
+        """Set the visibility of the named element.
+
+        Parameters
+        ----------
+        visibility : str
+            The visibility of the named element.
+
+        Raises
+        ------
+        ValueError
+            If the visibility provided is none of these: `public`, `private`, `protected`, or `package`.
         """
-        str: Set the visibility of the named element.
-        
-        Raises:
-            ValueError: If the visibility provided is none of these: public, 
-            private, protected, or package.
-        """
-        if visibility not in ['public', 'private', 'protected', 'package']:
+        # Check if the provided visibility is valid.
+        if visibility not in ["public", "private", "protected", "package"]:
             raise ValueError("Invalid value of visibility")
+
+        # Set the visibility of the named element.
         self.__visibility = visibility
 
     @property
     def synonyms(self) -> List[str]:
-        """List[str]: Get the list of synonyms of the named element."""
+        """Get the list of synonyms of the named element.
+
+        Returns
+        -------
+        synonyms : List[str]
+            The list of synonyms of the named element.
+        """
+        # Return the list of synonyms of the named element.
         return self.__synonyms
 
     @synonyms.setter
     def synonyms(self, synonyms: List[str]):
-        """List[str]: Set the list of synonyms of the named element."""
+        """Set the list of synonyms of the named element.
+
+        Parameters
+        ----------
+        synonyms : List[str]
+            The list of synonyms of the named element.
+        """
+        # Set the list of synonyms of the named element.
         self.__synonyms = synonyms
 
+
 class Type(NamedElement):
-    """Type is the Superclass of classes and data types in the model.
+    """The `Type` class is the superclass of classes and data types in the B-UML metamodel.
 
-    Args:
-        name (str): The name of the Type.
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the type (None as default).
+    This class inherits from the `NamedElement` class.
 
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the Type.
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the type (None as default).
+    Attributes
+    ----------
+    name : str
+        The name of the type. Inherits from `NamedElement`.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `NamedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the type. Inherits from `NamedElement`.
+        By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the type.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the type.
     """
 
-    def __init__(self, name: str, timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self, name: str, timestamp: datetime = None, synonyms: List[str] = None
+    ):
+        """Initialize an instance of the `Type` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `NamedElement` superclass.
         super().__init__(name, timestamp, synonyms)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `Type` object.
+
+        The string representation includes the `name`, `timestamp`, and `synonyms` of the `Type` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Type` object.
+        """
+        # Return the string representation of the `Type` object.
         return f"Type({self.name}, {self.timestamp}, {self.synonyms})"
 
+
 class DataType(Type):
-    """Represents a data type.
+    """The `DataType` class represents a data type in the B-UML metamodel.
 
-    This class inherits from NamedElement and is used to model data types.
-
-    Args:
-        name (str): The name of the data type.
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the data type (None as default).
-
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the data type.
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the data type (None as default).
+    This class inherits from the `Type` class.
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `DataType` object.
+
+        The string representation includes the `name` of the `DataType` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `DataType` object.
+        """
+        # Return the string representation of the `DataType` object.
         return f"DataType({self.name})"
 
+
 class PrimitiveDataType(DataType):
-    """Class representing a primitive data type.
+    """The `PrimitiveDataType` class represents a primitive data type with a specified name in the B-UML metamodel.
 
-    This class is a subclass of DataType and is used to represent primitive data types
-    with a specified name.
-
-    Args:
-        name (str): The name of the primitive data type.
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the primitive data type (None as default).
-
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the primitive data type.
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the primitive data type (None as default).
+    This class inherits from the `DataType` class.
     """
 
     @NamedElement.name.setter
     def name(self, name: str):
+        """Set the name of the `PrimitiveDataType`.
+
+        Parameters
+        ----------
+        name : str
+            The name of the `PrimitiveDataType`.
+
+        Raises
+        ------
+        ValueError
+            If an invalid primitive data type is provided.
+            Allowed values are `int`, `float`, `str`, `bool`, `time`, `date`,
+            `datetime`, and `timedelta`.
         """
-        str: Set the name of the PrimitiveDataType. 
-        
-        Raises:
-            ValueError: If an invalid primitive data type is provided.
-                        Allowed values are int, float, str, bool, time, date, 
-                        datetime, and timedelta.
-        """
-        if name not in ['int', 'float', 'str', 'bool', 'time', 'date', 'datetime', 'timedelta']:
+
+        # Check if the provided name is a valid primitive data type.
+        if name not in [
+            "int",
+            "float",
+            "str",
+            "bool",
+            "time",
+            "date",
+            "datetime",
+            "timedelta",
+        ]:
             raise ValueError("Invalid primitive data type")
+
+        # Set the name of the `PrimitiveDataType`.
         super(PrimitiveDataType, PrimitiveDataType).name.fset(self, name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `PrimitiveDataType` object.
+
+        The string representation includes the `name`, `timestamp`, and `synonyms` of the `PrimitiveDataType` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `PrimitiveDataType` object.
+        """
+        # Return the string representation of the `PrimitiveDataType` object.
         return f"PrimitiveDataType({self.name}, {self.timestamp}, {self.synonyms})"
 
-# Define instances of PrimitiveDataType
+
+# Define instances of `PrimitiveDataType`.
 StringType = PrimitiveDataType("str")
 IntegerType = PrimitiveDataType("int")
 FloatType = PrimitiveDataType("float")
@@ -162,138 +325,310 @@ TimeType = PrimitiveDataType("time")
 DateType = PrimitiveDataType("date")
 DateTimeType = PrimitiveDataType("datetime")
 TimeDeltaType = PrimitiveDataType("timedelta")
-primitive_data_types = {StringType, IntegerType, FloatType, BooleanType,
-                        TimeType, DateType, DateTimeType, TimeDeltaType}
+
+# Define a set of primitive data types.
+primitive_data_types: Set[PrimitiveDataType] = {
+    StringType,
+    IntegerType,
+    FloatType,
+    BooleanType,
+    TimeType,
+    DateType,
+    DateTimeType,
+    TimeDeltaType,
+}
+
 
 class EnumerationLiteral(NamedElement):
-    """Class representing an enumeration literal.
+    """The `EnumerationLiteral` class represents an enumeration literal in the B-UML metamodel.
 
-    This class is a subclass of NamedElement and is used to represent individual
-    literals within an enumeration.
+    This class inherits from the `NamedElement` class.
 
-    Args:
-        name (str): The name of the enumeration literal.
-        owner (DataType): The owner data type of the enumeration literal (None as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the literal (None as default).
+    Attributes
+    ----------
+    name : str
+        The name of the enumeration literal. Inherits from `NamedElement`.
 
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the enumeration literal.
-        owner (DataType): Represents the owner data type of the enumeration literal (None as default).
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the literal (None as default).
+    owner : DataType
+        The owner data type of the enumeration literal. By default it is `None`.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `NamedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the enumeration literal. Inherits from `NamedElement`.
+        By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the enumeration literal.
+
+    owner : DataType, optional
+        The owner data type of the enumeration literal.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the enumeration literal.
     """
 
-    def __init__(self, name: str, owner: DataType=None, timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        owner: DataType = None,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
+        """Initialize an instance of the `EnumerationLiteral` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `NamedElement` superclass.
         super().__init__(name, timestamp, synonyms)
+
+        # Set the owner data type of the enumeration literal.
         self.owner: DataType = owner
 
     @property
     def owner(self) -> DataType:
-        """Datatype: Get the owner."""
+        """Get the owner data type of the enumeration literal.
+
+        Returns
+        -------
+        owner : DataType
+            The owner data type of the enumeration literal.
+        """
         return self.__owner
 
     @owner.setter
     def owner(self, owner: DataType):
+        """Set the owner data type of the enumeration literal.
+
+        Parameters
+        ----------
+        owner : DataType
+            The owner data type of the enumeration literal.
+
+        Raises
+        ------
+        ValueError
+            If the owner is an instance of `PrimitiveDataType`.
         """
-        DataType: Set the owner. 
-        
-        Raises:
-            ValueError: If the owner is not an enumeration.
-        """
+
+        # Check if the owner is an instance of `PrimitiveDataType`.
         if isinstance(owner, PrimitiveDataType):
             raise ValueError("Invalid owner")
+
+        # Set the owner data type of the enumeration literal.
         self.__owner = owner
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `EnumerationLiteral` object.
+
+        The string representation includes the `name`, `owner`, `timestamp`, and `synonyms` of the `EnumerationLiteral` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `EnumerationLiteral` object.
+        """
         return f"EnumerationLiteral({self.name}, {self.owner}, {self.timestamp}, {self.synonyms})"
 
+
 class Enumeration(DataType):
-    """Class representing an enumeration.
+    """The `Enumeration` class represents an enumeration with a specified name and a set of enumeration literals in the B-UML metamodel.
 
-    This class is a subclass of DataType and is used to represent enumerations
-    with a specified name and a set of enumeration literals.
+    This class is a subclass of `DataType`.
 
-    Args:
-        name (str): The name of the enumeration data type.
-        literals (set[EnumerationLiteral]): Set of enumeration literals associated with the 
-                enumeration (None as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the enumeration (None as default).
+    Attributes
+    ----------
+    name : str
+        The name of the enumeration data type. Inherits from `DataType`.
 
-    Attributes:
-        name (str): Inherited from DataType, represents the name of the enumeration.
-        literals (set[EnumerationLiteral]): Represents a set of enumeration literals associated 
-                with the enumeration (None as default).
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is 
-                current time).
-        synonyms (List[str]): List of synonyms of the enumeration (None as default).
+    literals : Set[EnumerationLiteral]
+        The set of enumeration literals associated with the enumeration. By default it is set to an empty set.
+        See the `__init__` method for more details.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `DataType`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the enumeration. Inherits from `DataType`.
+        By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the enumeration data type.
+
+    literals : Set[EnumerationLiteral], optional
+        The set of enumeration literals associated with the enumeration.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the enumeration.
     """
 
-    def __init__(self, name: str, literals: set[EnumerationLiteral] = None, timestamp: int = None,
-                 synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        literals: Set[EnumerationLiteral] = None,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
+        """Initialize an instance of the `Enumeration` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `DataType` superclass.
         super().__init__(name, timestamp, synonyms)
-        self.literals: set[EnumerationLiteral] = literals if literals is not None else set()
+
+        # Set the set of enumeration literals associated with the enumeration.
+        self.literals: Set[EnumerationLiteral] = (
+            literals if literals is not None else set()
+        )
 
     @property
-    def literals(self) -> set[EnumerationLiteral]:
-        """set[EnumerationLiteral]: Get the set of literals."""
+    def literals(self) -> Set[EnumerationLiteral]:
+        """Get the set of enumeration literals associated with the enumeration.
+
+        Returns
+        -------
+        literals : Set[EnumerationLiteral]
+            The set of enumeration literals associated with the enumeration.
+        """
+        # Return the set of enumeration literals associated with the enumeration.
         return self.__literals
 
     @literals.setter
-    def literals(self, literals: set[EnumerationLiteral]):
+    def literals(self, literals: Set[EnumerationLiteral]):
+        """Set the set of enumeration literals associated with the enumeration.
+
+        If the set of enumeration literals is `None`, set it to an empty set.
+
+        Parameters
+        ----------
+        literals : Set[EnumerationLiteral]
+            The set of enumeration literals associated with the enumeration.
+
+        Raises
+        ------
+        ValueError
+            If the enumeration literal name already exists.
         """
-        DataType: Set the literals. 
-        
-        Raises:
-            ValueError: if two literals have the same name.
-        """
+        # Check if the set of enumeration literals is not `None`.
         if literals is not None:
+            # For each enumeration literal in the set of enumeration literals.
             names = [literal.name for literal in literals]
+            # Check if the enumeration literal name already exists.
             if len(names) != len(set(names)):
-                raise ValueError("An enumeration cannot have two literals with the same name")
+                raise ValueError(
+                    "An enumeration cannot have two literals with the same name"
+                )
+            # Set the set of enumeration literals associated with the enumeration.
             for literal in literals:
                 literal.owner = self
             self.__literals = literals
+
+        # If the set of enumeration literals is `None`, set it to an empty set.
         else:
             self.__literals = set()
 
     def add_literal(self, literal: EnumerationLiteral):
+        """Add an enumeration literal to the set of enumeration literals associated with the enumeration.
+
+        Parameters
+        ----------
+        literal : EnumerationLiteral
+            The enumeration literal to be added to the set of enumeration literals.
+
+        Raises
+        ------
+        ValueError
+            If the enumeration literal name already exists.
         """
-        Add an enumeration literal to the set.
-        
-        Raises:
-            ValueError: if the enumeration literal name already exist.
-        """
+        # Check if the set of enumeration literals is not `None`.
         if self.literals is not None:
+            # Check if the enumeration literal name already exists.
             if literal.name in [literal.name for literal in self.literals]:
-                raise ValueError(f"An enumeration cannot have two literals with the same name: '{literal.name}'")
+                raise ValueError(
+                    f"An enumeration cannot have two literals with the same name: '{literal.name}'"
+                )
+        # Add the enumeration literal to the set of enumeration literals.
         self.literals.add(literal)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `Enumeration` object.
+
+        The string representation includes the `name`, `literals`, `timestamp`, and `synonyms` of the `Enumeration` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Enumeration` object.
+        """
+        # Return the string representation of the `Enumeration` object.
         return f"Enumeration({self.name}, {self.literals}, {self.timestamp}, {self.synonyms})"
 
+
 class TypedElement(NamedElement):
-    """TypedElement is a subclass of NamedElement and is used to represent elements
-    that have a specific type.
+    """The `TypedElement` class represents elements that have a specific type in the B-UML metamodel.
 
-    Args:
-        name (str): The name of the typed element.
-        type (Type, str): The data type of the typed element.
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the typed element (None as default).
-        visibility (str): Determines the kind of visibility of the typed element (public as default).
+    This class inherits from `NamedElement`.
 
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the typed element.
-        type (Type): The data type of the typed element.
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        type (Type, str): The data type of the typed element.
-        synonyms (List[str]): List of synonyms of the typed element (None as default).
-        visibility (str): Inherited from NamedElement, represents the visibility of the typed element (public as default).
+    Attributes
+    ----------
+    type_mapping : Dict[str, PrimitiveDataType]
+        A mapping of primitive data types to their corresponding `PrimitiveDataType` instances.
+
+    name : str
+        The name of the typed element. Inherits from `NamedElement`.
+
+    type : Type
+        The data type of the typed element.
+        See the `__init__` method for more details.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `NamedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the typed element. Inherits from `NamedElement`.
+        By default it is `None`.
+
+    visibility : str
+        Determines the kind of visibility of the typed element. Inherits from `NamedElement`.
+        By default it is `public`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the typed element.
+
+    type : Union[Type, str]
+        The data type of the typed element.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the typed element.
+
+    visibility : str, optional
+        Determines the kind of visibility of the typed element.
     """
 
-    type_mapping = {
+    # Define a mapping from strings to primitive data types.
+    type_mapping: Dict[str, PrimitiveDataType] = {
         "str": StringType,
         "string": StringType,
         "int": IntegerType,
@@ -302,360 +637,814 @@ class TypedElement(NamedElement):
         "time": TimeType,
         "date": DateType,
         "datetime": DateTimeType,
-        "timedelta": TimeDeltaType
+        "timedelta": TimeDeltaType,
     }
 
-    def __init__(self, name: str, type: Union[Type, str], timestamp: int = None, synonyms: List[str] = None,
-                 visibility: str="public"):
+    def __init__(
+        self,
+        name: str,
+        type: Union[Type, str],
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+        visibility: str = "public",
+    ):
+        """Initialize an instance of the `TypedElement` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `NamedElement` superclass.
         super().__init__(name, timestamp, synonyms, visibility)
+
+        # Set the data type of the typed element.
         self.type = self.type_mapping.get(type, type)
 
     @property
     def type(self) -> Type:
-        """Type: Get the type of the typed element."""
+        """Get the data type of the typed element.
+
+        Returns
+        -------
+        type : Type
+            The data type of the typed element.
+        """
+        # Return the data type of the typed element.
         return self.__type
 
     @type.setter
     def type(self, type: Type):
-        """Type: Set the type of the typed element."""
+        """Set the data type of the typed element.
+
+        Parameters
+        ----------
+        type : Type
+            The data type of the typed element.
+        """
+        # Set the data type of the typed element.
         self.__type = type
 
+
 class Multiplicity:
-    """Represents the multiplicity of a Property.
+    """The `Multiplicity` class represents the multiplicity of a property in the B-UML metamodel.
 
-    It consists of a minimum and maximum value, indicating the allowed range.
+    Attributes
+    ----------
+    min : int
+        The minimum multiplicity.
 
-    Args:
-        min_multiplicity (int): The minimum multiplicity.
-        max_multiplicity (int): The maximum multiplicity. Use "*" for unlimited.
+    max : int
+        The maximum multiplicity.
 
-    Attributes:
-        min (int): The minimum multiplicity.
-        max (int): The maximum multiplicity. Use "*" for unlimited.
+    Parameters
+    ----------
+    min_multiplicity : int
+        The minimum multiplicity.
+
+    max_multiplicity : Union[int, str]
+        The maximum multiplicity. Use "*" for unlimited.
     """
 
-    def __init__(self, min_multiplicity: int, max_multiplicity: int):
+    def __init__(self, min_multiplicity: int, max_multiplicity: Union[int, str]):
+        """Initialize an instance of the `Multiplicity` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
         self.min: int = min_multiplicity
         self.max: int = max_multiplicity
 
     @property
     def min(self) -> int:
-        """int: Get the minimum multiplicity."""
+        """Get the minimum multiplicity.
+
+        Returns
+        -------
+        min : int
+            The minimum multiplicity.
+        """
+        # Return the minimum multiplicity.
         return self.__min
 
     @min.setter
     def min(self, min_multiplicity: int):
+        """Set the minimum multiplicity.
+
+        Parameters
+        ----------
+        min_multiplicity : int
+            The minimum multiplicity.
+
+        Raises
+        ------
+        ValueError
+            If the minimum multiplicity is less than 0.
         """
-        int: Set the minimum multiplicity 
-        
-        Raises:
-            ValueError: (Invalid min multiplicity) if the minimum multiplicity is less than 0.
-        """
+        # Check if the minimum multiplicity is less than 0.
         if min_multiplicity < 0:
             raise ValueError("Invalid min multiplicity")
+        # Set the minimum multiplicity.
         self.__min = min_multiplicity
 
     @property
     def max(self) -> int:
-        """int: Get the maximum multiplicity."""
+        """Get the maximum multiplicity.
+
+        Returns
+        -------
+        max : int
+            The maximum multiplicity.
+        """
+        # Return the maximum multiplicity.
         return self.__max
 
     @max.setter
-    def max(self, max_multiplicity: int):
+    def max(self, max_multiplicity: Union[int, str]):
+        """Set the maximum multiplicity.
+
+        Parameters
+        ----------
+        max_multiplicity : Union[int, str]
+            The maximum multiplicity. Use "*" for unlimited.
+
+        Raises
+        ------
+        ValueError
+            If the maximum multiplicity is less than 0.
+
+        ValueError
+            If the maximum multiplicity is less than the minimum multiplicity.
+
+        ValueError
+            If the maximum multiplicity is invalid.
         """
-        int: Set the maximum multiplicity.
-        
-        Raises:
-            ValueError: (Invalid max multiplicity) if the maximum multiplicity is less than 0 or
-            less than minimum multiplicity.
-        """
+        # Check if the maximum multiplicity is "*".
         if max_multiplicity == "*":
             max_multiplicity = UNLIMITED_MAX_MULTIPLICITY
+        # Check if the maximum multiplicity is less than 0.
         if max_multiplicity < 0:
             raise ValueError("Invalid max multiplicity")
+        # Check if the maximum multiplicity is less than the minimum multiplicity.
         if max_multiplicity < self.min:
             raise ValueError("Invalid max multiplicity")
+        # Set the maximum multiplicity.
         self.__max = max_multiplicity
 
-    def __repr__(self):
-        return f'Multiplicity({self.min}, {self.max})'
+    def __repr__(self) -> str:
+        """Return a string representation of the `Multiplicity` object.
+
+        The string representation includes the `min` and `max` of the `Multiplicity` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Multiplicity` object.
+        """
+        # Return the string representation of the `Multiplicity` object.
+        return f"Multiplicity({self.min}, {self.max})"
 
 
 # Properties are owned by a class or an association and point to a type with a multiplicity
 class Property(TypedElement):
-    """A property can represents an attribute of a class or an end of an association.
+    """The `Property` class represents a attribute of a class or an end of an association in the B-UML metamodel.
 
-    Properties are owned by a class or an association.
+    This class inherits from the `TypedElement` class.
 
-    Args:
-        name (str): The name of the property.
-        type (Type): The type of the property.
-        owner (Type): The type that owns the property (None as default).
-        multiplicity (Multiplicity): The multiplicity of the property (1..1 as default).
-        visibility (str): The visibility of the property (public as default).
-        is_composite (bool): Indicates whether the property is a composite (False as default).
-        is_navigable (bool): Indicates whether the property is navigable in a relationship (True as default).
-        is_id (bool): Indicates whether the property is an id (False as default).
-        is_read_only (bool): Indicates whether the property is read only (False as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the property (None as default).
+    Attributes
+    ----------
+    name : str
+        The name of the property. Inherits from `TypedElement`.
 
-    Attributes:
-        name (str): Inherited from TypedElement, represents the name of the property.
-        type (Type): Inherited from TypedElement, represents the type of the property.
-        owner (Type): The type that owns the property (public as default).
-        multiplicity (Multiplicity): The multiplicity of the property (1..1 as default).
-        visibility (str): Inherited from TypedElement, represents the visibility of the property (public as default).
-        is_composite (bool): Indicates whether the property is a composite (False as default).
-        is_navigable (bool): Indicates whether the property is navigable in a relationship (True as default).
-        is_id (bool): Indicates whether the property is an id (False as default).
-        is_read_only (bool): Indicates whether the property is read only (False as default).
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the property (None as default).
+    type : Type
+        The type of the property. Inherits from `TypedElement`.
+
+    owner : Type
+        The type that owns the property. By default it is `None`.
+
+    multiplicity : Multiplicity
+        The multiplicity of the property. By default it is `Multiplicity(1, 1)`.
+
+    visibility : str
+        Determines the kind of visibility of the property. By default it is `public`.
+
+    is_composite : bool
+        Indicates whether the property is a composite. By default it is `False`.
+
+    is_navigable : bool
+        Indicates whether the property is navigable in a relationship. By default it is `True`.
+
+    is_id : bool
+        Indicates whether the property is an id. By default it is `False`.
+
+    is_read_only : bool
+        Indicates whether the property is read only. By default it is `False`.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `TypedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the property. Inherits from `TypedElement`.
+        By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the property.
+
+    type : Type
+        The type of the property.
+
+    owner : Type, optional
+        The type that owns the property.
+
+    multiplicity : Multiplicity, optional
+        The multiplicity of the property.
+
+    visibility : str, optional
+        Determines the kind of visibility of the property.
+
+    is_composite : bool, optional
+        Indicates whether the property is a composite.
+
+    is_navigable : bool, optional
+        Indicates whether the property is navigable in a relationship.
+
+    is_id : bool, optional
+        Indicates whether the property is an id.
+
+    is_read_only : bool, optional
+        Indicates whether the property is read only.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the property.
     """
 
-    def __init__(self, name: str, type: Type, owner: Type = None, multiplicity: Multiplicity = Multiplicity(1, 1),
-                 visibility: str = 'public', is_composite: bool = False, is_navigable: bool = True,
-                 is_id: bool = False, is_read_only: bool = False, timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        type: Type,
+        owner: Type = None,
+        multiplicity: Multiplicity = Multiplicity(1, 1),
+        visibility: str = "public",
+        is_composite: bool = False,
+        is_navigable: bool = True,
+        is_id: bool = False,
+        is_read_only: bool = False,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
+        """Initialize an instance of the `Property` class.
+
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `TypedElement` superclass.
         super().__init__(name, type, timestamp, synonyms, visibility)
+
+        # Set the owner type of the property.
         self.owner: Type = owner
+
+        # Set the multiplicity of the property.
         self.multiplicity: Multiplicity = multiplicity
+
+        # Set whether the property is composite.
         self.is_composite: bool = is_composite
+
+        # Set whether the property is navigable.
         self.is_navigable: bool = is_navigable
+
+        # Set whether the property is an id.
         self.is_id: bool = is_id
+
+        # Set whether the property is read only.
         self.is_read_only: bool = is_read_only
 
     @property
     def owner(self) -> Type:
-        """Type: Get the owner type of the property."""
+        """Get the owner type of the property.
+
+        Returns
+        -------
+        owner : Type
+            The owner type of the property.
+        """
         return self.__owner
 
     @owner.setter
     def owner(self, owner: Type):
+        """Set the owner type of the property.
+
+        Parameters
+        ----------
+        owner : Type
+            The owner type of the property.
+
+        Raises
+        ------
+        ValueError
+            If the owner is an instance of `DataType`.
         """
-        Type: Set the owner type of the property.
-        
-        Raises:
-            ValueError: (Invalid owner) if the owner is instance of DataType.
-        """
+        # Check if the owner is an instance of `DataType`.
         if isinstance(owner, DataType):
             raise ValueError("Invalid owner")
+
+        # Set the owner type of the property.
         self.__owner = owner
 
-    @property
-    def multiplicity(self) -> Multiplicity:
-        """Multiplicity: Get the multiplicity of the property."""
-        return self.__multiplicity
-
-    @multiplicity.setter
-    def multiplicity(self, multiplicity: Multiplicity):
-        """Multiplicity: Set the multiplicity of the property."""
-        self.__multiplicity = multiplicity
 
     @property
     def is_composite(self) -> bool:
-        """bool: Get whether the property is composite."""
+        """
+        Get whether the property is composite.
+
+        Returns
+        -------
+        bool
+            True if the property is composite, False otherwise.
+        """
         return self.__is_composite
+
 
     @is_composite.setter
     def is_composite(self, is_composite: bool):
-        """bool: Set whether the property is composite."""
+        """
+        Set whether the property is composite.
+
+        Parameters
+        ----------
+        is_composite : bool
+            True if the property is composite, False otherwise.
+        """
         self.__is_composite = is_composite
+
 
     @property
     def is_navigable(self) -> bool:
-        """bool: Get whether the property is navigable."""
+        """
+        Get whether the property is navigable.
+
+        Returns
+        -------
+        bool
+            True if the property is navigable, False otherwise.
+        """
         return self.__is_navigable
+
 
     @is_navigable.setter
     def is_navigable(self, is_navigable: bool):
-        """bool: Set whether the property is navigable."""
+        """
+        Set whether the property is navigable.
+
+        Parameters
+        ----------
+        is_navigable : bool
+            True if the property is navigable, False otherwise.
+        """
         self.__is_navigable = is_navigable
+
 
     @property
     def is_id(self) -> bool:
-        """bool: Get whether the property is an id."""
+        """
+        Get whether the property is an id.
+
+        Returns
+        -------
+        bool
+            True if the property is an id, False otherwise.
+        """
         return self.__is_id
+
 
     @is_id.setter
     def is_id(self, is_id: bool):
-        """bool: Set whether the property is an id."""
+        """
+        Set whether the property is an id.
+
+        Parameters
+        ----------
+        is_id : bool
+            True if the property is an id, False otherwise.
+        """
         self.__is_id = is_id
+
 
     @property
     def is_read_only(self) -> bool:
-        """bool: Get whether the property is read only."""
+        """
+        Get whether the property is read only.
+
+        Returns
+        -------
+        bool
+            True if the property is read only, False otherwise.
+        """
         return self.__is_read_only
+
 
     @is_read_only.setter
     def is_read_only(self, is_read_only: bool):
-        """bool: Set whether the property is read only."""
+        """
+        Set whether the property is read only.
+
+        Parameters
+        ----------
+        is_read_only : bool
+            True if the property is read only, False otherwise.
+        """
         self.__is_read_only = is_read_only
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `Property` object.
+
+        The string representation includes the `name`, `visibility`, `type`, `multiplicity`, 
+        `is_composite`, `is_id`, `is_read_only`, `timestamp`, and `synonyms` of the `Property` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Property` object.
+        """
         return (
-            f'Property({self.name}, {self.visibility}, {self.type}, {self.multiplicity}, '
-            f'is_composite={self.is_composite}, is_id={self.is_id}, '
-            f'is_read_only={self.is_read_only}, {self.timestamp}, {self.synonyms})'
+            f"Property({self.name}, {self.visibility}, {self.type}, {self.multiplicity}, "
+            f"is_composite={self.is_composite}, is_id={self.is_id}, "
+            f"is_read_only={self.is_read_only}, {self.timestamp}, {self.synonyms})"
         )
 
+
 class Parameter(TypedElement):
+    """The `Parameter` class represents a parameter of a method with a specific type in the B-UML metamodel.
+
+    This class inherits from the `TypedElement` class.
+
+    Attributes
+    ----------
+    name : str
+        The name of the parameter. Inherits from `TypedElement`.
+
+    type : Type
+        The data type of the parameter. Inherits from `TypedElement`.
+
+    default_value : Any
+        The default value of the parameter. By default it is `None`.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `TypedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the parameter. By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the parameter.
+
+    type : Type
+        The data type of the parameter.
+
+    default_value : Any, optional
+        The default value of the parameter.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the parameter.
     """
-    Parameter is used to represent a parameter of a method with a specific type.
 
-    Args:
-        name (str): The name of the parameter.
-        type (Type): The data type of the parameter.
-        default_value (Any): The default value of the parameter (None as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the parameter (None as default).
+    def __init__(
+        self,
+        name: str,
+        type: Type,
+        default_value: Any = None,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
+        """Initialize an instance of the `Parameter` class.
 
-    Attributes:
-        name (str): Inherited from NamedElement, represents the name of the parameter.
-        type (Type): Inherited from TypedElement, represents the type of the parameter.
-        default_value (Any): The default value of the parameter (None as default).
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the parameter (None as default).
-    """
-
-    def __init__(self, name: str, type: Type, default_value: Any = None, timestamp: int = None,
-                 synonyms: List[str] = None):
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `TypedElement` superclass.
         super().__init__(name, type, timestamp, synonyms)
+
+        # Set the default value of the parameter.
         self.default_value: Any = default_value
 
     @property
     def default_value(self) -> Any:
-        """Type: Get the default value of the parameter."""
+        """Get the default value of the parameter.
+
+        Returns
+        -------
+        default_value : Any
+            The default value of the parameter.
+        """
+        # Return the default value of the parameter.
         return self.__default_value
 
     @default_value.setter
     def default_value(self, default_value: Any):
-        """Type: Set the default value of the parameter."""
+        """Set the default value of the parameter.
+
+        Parameters
+        ----------
+        default_value : Any
+            The default value of the parameter.
+        """
+        # Set the default value of the parameter.
         self.__default_value = default_value
 
-    def __repr__(self):
-        return f'Parameter({self.name}, {self.type}, {self.default_value}, {self.timestamp}, {self.synonyms})'
+    def __repr__(self) -> str:
+        """Return a string representation of the `Parameter` object.
+
+        The string representation includes the `name`, `type`, `default_value`, `timestamp`, and `synonyms` of the `Parameter` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Parameter` object.
+        """
+        return f"Parameter({self.name}, {self.type}, {self.default_value}, {self.timestamp}, {self.synonyms})"
+
 
 class Method(TypedElement):
+    """The `Method` class represents a method of a class in the B-UML metamodel.
+
+    This class inherits from the `TypedElement` class.
+
+
+    Attributes
+    ----------
+    name : str
+        The name of the method. Inherits from `TypedElement`.
+
+    visibility : str
+        The visibility of the method. Inherits from `TypedElement`.
+
+    is_abstract : bool
+        Indicates whether the method is abstract. By default it is `False`.
+
+    parameters : Set[Parameter]
+        The set of parameters of the method. By default it is an empty set.
+        See the `__init__` method for more details.
+
+    type : Type
+        The type of the method. Inherits from `TypedElement`.
+
+    owner : Type
+        The type that owns the method. By default it is `None`.
+
+    code : str
+        The code of the method. By default it is an empty string.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `TypedElement`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    synonyms : List[str]
+        The list of synonyms of the method. By default it is `None`.
+
+    Parameters
+    ----------
+    name : str
+        The name of the method.
+
+    visibility : str, optional
+        The visibility of the method.
+
+    is_abstract : bool, optional
+        Indicates whether the method is abstract.
+
+    parameters : Set[Parameter], optional
+        The set of parameters of the method.
+
+    type : Type, optional
+        The type of the method.
+
+    owner : Type, optional
+        The type that owns the method.
+
+    code : str, optional
+        The code of the method.
+
+    timestamp : datetime, optional
+        The object creation datetime.
+
+    synonyms : List[str], optional
+        The list of synonyms of the method.
     """
-    Method is used to represent a method of a class.
 
-    Args:
-        name (str): The name of the method.
-        visibility (str): Determines the kind of visibility of the method (public as default).
-        is_abstract (bool): Indicates if the method is abstract (False as default).
-        parameters (set[Parameter]): The set of parameters for the method (set() as default).
-        type (Type): The type of the method (None as default).
-        owner (Type): The type that owns the method (None as default).
-        code (str): code of the method ("" as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the method (None as default).
+    def __init__(
+        self,
+        name: str,
+        visibility: str = "public",
+        is_abstract: bool = False,
+        parameters: Set[Parameter] = None,
+        type: Type = None,
+        owner: Type = None,
+        code: str = "",
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
+        """Initialize an instance of the `Method` class.
 
-    Attributes:
-        name (str): Inherited from TypedElement, represents the name of the method.
-        visibility (str): Inherited from TypedElement, represents the visibility of the method (public as default).
-        is_abstract (bool): Indicates if the method is abstract. (False as default)
-        parameters (set[Parameter]): The set of parameters for the method (set() as default).
-        type (Type): Inherited from TypedElement, represents the type of the method (None as default).
-        owner (Type): The type that owns the property (None as default).
-        code (str): code of the method ("" as default).
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the method (None as default).
-    """
-
-    def __init__(self, name: str, visibility: str = "public", is_abstract: bool = False,
-                 parameters: set[Parameter] = None, type: Type = None, owner: Type = None,
-                 code: str = "", timestamp: int = None, synonyms: List[str] = None):
+        See the class docstring for more details on `Parameters` and `Attributes`.
+        """
+        # Initialize the `TypedElement` superclass.
         super().__init__(name, type, timestamp, synonyms, visibility)
+
+        # Set whether the method is abstract.
         self.is_abstract: bool = is_abstract
-        self.parameters: set[Parameter] = parameters if parameters is not None else set()
+
+        # Set the set of parameters of the method.
+        self.parameters: Set[Parameter] = (
+            parameters if parameters is not None else set()
+        )
+
+        # Set the owner type of the method.
         self.owner: Type = owner
+
+        # Set the code of the method.
         self.code: str = code
 
     @property
     def is_abstract(self) -> bool:
-        """bool: Get whether the method is abstract."""
+        """Get whether the method is abstract.
+
+        Returns
+        -------
+        bool
+            True if the method is abstract, False otherwise.
+        """
+        # Return whether the method is abstract.
         return self.__is_abstract
 
     @is_abstract.setter
     def is_abstract(self, is_abstract: bool):
-        """bool: Set whether the method is abstract."""
+        """Set whether the method is abstract.
+
+        Parameters
+        ----------
+        is_abstract : bool
+            True if the method is abstract, False otherwise.
+        """
+        # Set whether the method is abstract.
         self.__is_abstract = is_abstract
 
     @property
-    def parameters(self) -> set[Parameter]:
-        """set[Parameter]: Get the set of parameters of the method."""
+    def parameters(self) -> Set[Parameter]:
+        """Get the parameters of the method.
+
+        Returns
+        -------
+        parameters : Set[Parameter]
+            The parameters of the method.
+        """
         return self.__parameters
 
     @parameters.setter
-    def parameters(self, parameters: set[Parameter]):
-        """
-        set[Parameter]: Set the parameters of the method.
-        
-        Raises:
-            ValueError: if two parameters have the same name.
-        """
-        if parameters is not None:
-            names_seen = set()
-            duplicates = set()
+    def parameters(self, parameters: Set[Parameter]):
+        """Set the parameters of the method.
 
+        If the set of parameters is `None`, set it to an empty set.
+
+        Parameters
+        ----------
+        parameters : Set[Parameter]
+            The parameters of the method.
+
+        Raises
+        ------
+        ValueError
+            If the method has parameters with duplicate names.
+        """
+        # Check if the set of parameters is not `None`.
+        if parameters is not None:
+            # Define a set of names seen and a set of duplicates.
+            names_seen: Set[str] = set()
+            duplicates: Set[str] = set()
+
+            # For each parameter in the set of parameters, check if the parameter name already exists.
             for parameter in parameters:
                 if parameter.name in names_seen:
                     duplicates.add(parameter.name)
                 names_seen.add(parameter.name)
+                # Also, set the owner of the parameter to the method.
+                # TODO: Check if this code is necessary (since the `Parameter` class does not have an `owner` attribute).
                 parameter.owner = self
 
+            # Check if the method has parameters with duplicate names.
             if duplicates:
-                raise ValueError(f"A method cannot have parameters with duplicate names: {', '.join(duplicates)}")
+                raise ValueError(
+                    f"A method cannot have parameters with duplicate names: {', '.join(duplicates)}"
+                )
 
+            # Set the set of parameters of the method.
             self.__parameters = parameters
+
+        # If the set of parameters is `None`, set it to an empty set.
         else:
             self.__parameters = set()
 
     def add_parameter(self, parameter: Parameter):
+        """Add a parameter to the set of parameters of the method.
+
+        Parameters
+        ----------
+        parameter : Parameter
+            The parameter to be added to the set of parameters of the method.
+
+        Raises
+        ------
+        ValueError
+            If the method has two parameters with the same name.
         """
-        Parameter: Add a parameter to the set of class parameters.
-        
-        Raises:
-            ValueError: if the parameter name already exist.
-        """
+        # Check if the set of parameters is not `None`.
         if self.parameters is not None:
+            # Check if the method has two parameters with the same name.
             if parameter.name in [parameter.name for parameter in self.parameters]:
-                raise ValueError(f"A method cannot have two parameters with the same name: '{parameter.name}'")
+                raise ValueError(
+                    f"A method cannot have two parameters with the same name: '{parameter.name}'"
+                )
+            
+        # Add the parameter to the set of parameters of the method.
         self.parameters.add(parameter)
 
     @property
     def owner(self) -> Type:
-        """Type: Get the owner type of the method."""
+        """Get the owner type of the method.
+
+        Returns
+        -------
+        owner : Type
+            The owner type of the method.
+        """
         return self.__owner
 
     @owner.setter
     def owner(self, owner: Type):
+        """Set the owner type of the method.
+
+        Parameters
+        ----------
+        owner : Type
+            The owner type of the method.
+
+        Raises
+        ------
+        ValueError
+            If the owner is an instance of `DataType`.
         """
-        Type: Set the owner type of the method.
-        
-        Raises:
-            ValueError: (Invalid owner) if the owner is instance of DataType.
-        """
+        # Check if the owner is an instance of `DataType`.
         if isinstance(owner, DataType):
             raise ValueError("Invalid owner")
+        
+        # Set the owner type of the method.
         self.__owner = owner
 
     @property
     def code(self) -> str:
-        """str: Get the code of the method."""
+        """Get the code of the method.
+
+        Returns
+        -------
+        code : str
+            The code of the method.
+        """
         return self.__code
 
     @code.setter
     def code(self, code: str):
-        """str: Set the code of the method."""
+        """Set the code of the method.
+
+        Parameters
+        ----------
+        code : str
+            The code of the method.
+        """
         self.__code = code
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the `Method` object.
+
+        The string representation includes the `name`, `visibility`, `is_abstract`, `parameters`,
+        `type`, `owner`, `code`, `timestamp`, and `synonyms` of the `Method` object.
+        
+        Returns
+        -------
+        str
+            A string representation of the `Method` object.
+        """
         return (
-            f'Method({self.name}, {self.visibility}, {self.is_abstract}, {self.parameters}, '
-            f'{self.type}, {self.owner}, {self.code}, {self.timestamp}), {self.synonyms}'
+            f"Method({self.name}, {self.visibility}, {self.is_abstract}, {self.parameters}, "
+            f"{self.type}, {self.owner}, {self.code}, {self.timestamp}), {self.synonyms}"
         )
+
 
 class Class(Type):
     """Represents a class in a modeling context.
@@ -684,9 +1473,16 @@ class Class(Type):
         synonyms (List[str]): List of synonyms of the class (None as default).
     """
 
-    def __init__(self, name: str, attributes: set[Property] = None, methods: set[Method] = None,
-                 is_abstract: bool= False, is_read_only: bool= False, timestamp: int = None,
-                synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        attributes: set[Property] = None,
+        methods: set[Method] = None,
+        is_abstract: bool = False,
+        is_read_only: bool = False,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.is_abstract: bool = is_abstract
         self.is_read_only: bool = is_read_only
@@ -704,7 +1500,7 @@ class Class(Type):
     def attributes(self, attributes: set[Property]):
         """
         set[Property]: Set the attributes of the class.
-        
+
         Raises:
             ValueError: if two attributes have the same name.
             ValueError: if two attributes are id.
@@ -723,10 +1519,14 @@ class Class(Type):
                     id_counter += 1
 
             if duplicates:
-                raise ValueError(f"A class cannot have attributes with duplicate names: {', '.join(duplicates)}")
+                raise ValueError(
+                    f"A class cannot have attributes with duplicate names: {', '.join(duplicates)}"
+                )
 
             if id_counter > 1:
-                raise ValueError("A class cannot have more than one attribute marked as 'id'")
+                raise ValueError(
+                    "A class cannot have more than one attribute marked as 'id'"
+                )
 
             for attribute in attributes:
                 attribute.owner = self
@@ -743,7 +1543,7 @@ class Class(Type):
     def methods(self, methods: set[Method]):
         """
         set[Method]: Set the methods of the class.
-        
+
         Raises:
             ValueError: if two methods have the same name.
         """
@@ -757,7 +1557,9 @@ class Class(Type):
                 names_seen.add(method.name)
 
             if duplicates:
-                raise ValueError(f"A class cannot have methods with duplicate names: {', '.join(duplicates)}")
+                raise ValueError(
+                    f"A class cannot have methods with duplicate names: {', '.join(duplicates)}"
+                )
 
             for method in methods:
                 method.owner = self
@@ -768,13 +1570,15 @@ class Class(Type):
     def add_method(self, method: Method):
         """
         Method: Add a method to the set of class methods.
-        
+
         Raises:
             ValueError: if the method name already exist.
         """
         if self.methods is not None:
             if method.name in [method.name for method in self.methods]:
-                raise ValueError(f"A class cannot have two methods with the same name: '{method.name}'")
+                raise ValueError(
+                    f"A class cannot have two methods with the same name: '{method.name}'"
+                )
         method.owner = self
         self.methods.add(method)
 
@@ -786,13 +1590,15 @@ class Class(Type):
     def add_attribute(self, attribute: Property):
         """
         Property: Add an attribute to the set of class attributes.
-        
+
         Raises:
             ValueError: if the attribute name already exist.
         """
         if self.attributes is not None:
             if attribute.name in [attribute.name for attribute in self.attributes]:
-                raise ValueError(f"A class cannot have two attributes with the same name: '{attribute.name}'")
+                raise ValueError(
+                    f"A class cannot have two attributes with the same name: '{attribute.name}'"
+                )
         attribute.owner = self
         self.attributes.add(attribute)
 
@@ -856,7 +1662,7 @@ class Class(Type):
             aends = association.ends
             ends.update(aends)
             l_aends = list(aends)
-            if not(len(l_aends) == 2 and l_aends[0].type == l_aends[1].type):
+            if not (len(l_aends) == 2 and l_aends[0].type == l_aends[1].type):
                 for end in aends:
                     if end.type == self:
                         ends.discard(end)
@@ -910,7 +1716,8 @@ class Class(Type):
         return None
 
     def __repr__(self):
-        return f'Class({self.name}, {self.attributes}, {self.methods}, {self.timestamp}, {self.synonyms})'
+        return f"Class({self.name}, {self.attributes}, {self.methods}, {self.timestamp}, {self.synonyms})"
+
 
 class Association(NamedElement):
     """Represents an association between classes.
@@ -923,7 +1730,7 @@ class Association(NamedElement):
         ends (set[Property]): The set of ends related to the association.
         timestamp (datetime): Object creation datetime (default is current time).
         synonyms (List[str]): List of synonyms of the association (None as default).
-        
+
     Attributes:
         name (str): Inherited from NamedElement, represents the name of the association.
         ends (set[Property]): The set of ends related to the association.
@@ -931,7 +1738,13 @@ class Association(NamedElement):
         synonyms (List[str]): List of synonyms of the association (None as default).
     """
 
-    def __init__(self, name: str, ends: set[Property], timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        ends: set[Property],
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.ends: set[Property] = ends
 
@@ -944,7 +1757,7 @@ class Association(NamedElement):
     def ends(self, ends: set[Property]):
         """
         set[Property]: Set the ends of the association. Two or more ends are required.
-        
+
         Raises:
             ValueError: if an association has less than two ends.
         """
@@ -959,14 +1772,17 @@ class Association(NamedElement):
         self.__ends = ends
 
     def __repr__(self):
-        return f'Association({self.name}, {self.ends}, {self.timestamp}, {self.synonyms})'
+        return (
+            f"Association({self.name}, {self.ends}, {self.timestamp}, {self.synonyms})"
+        )
+
 
 class BinaryAssociation(Association):
     """Represents a binary association between two classes.
 
     A BinaryAssociation is a specialized form of Association that specifically involves
     two ends, each associated with a class. It enforces constraints on the association,
-    such as having exactly two ends. Exactly two ends are required 
+    such as having exactly two ends. Exactly two ends are required
 
     Args:
         name (str): The name of the binary association.
@@ -984,9 +1800,9 @@ class BinaryAssociation(Association):
     @Association.ends.setter
     def ends(self, ends: set[Property]):
         """set[Property]: Set the ends of the association.
-        
+
         Raises:
-            ValueError: if the associaiton ends are not exactly two, or if both ends are tagged as agregation, or 
+            ValueError: if the associaiton ends are not exactly two, or if both ends are tagged as agregation, or
             if both ends are tagged as composition.
         """
         if len(ends) != 2:
@@ -996,7 +1812,8 @@ class BinaryAssociation(Association):
         super(BinaryAssociation, BinaryAssociation).ends.fset(self, ends)
 
     def __repr__(self):
-        return f'BinaryAssociation({self.name}, {self.ends}, {self.timestamp}, {self.synonyms})'
+        return f"BinaryAssociation({self.name}, {self.ends}, {self.timestamp}, {self.synonyms})"
+
 
 class AssociationClass(Class):
     # Class that has an association nature
@@ -1018,8 +1835,14 @@ class AssociationClass(Class):
         synonyms (List[str]): List of synonyms of the association class (None as default).
     """
 
-    def __init__(self, name: str, attributes: set[Property], association: Association, timestamp: int = None,
-                 synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        attributes: set[Property],
+        association: Association,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, attributes, timestamp, synonyms)
         self.association: Association = association
 
@@ -1034,7 +1857,8 @@ class AssociationClass(Class):
         self.__association = association
 
     def __repr__(self):
-        return f'AssociationClass({self.name}, {self.attributes}, {self.association}, {self.timestamp}, {self.synonyms})'
+        return f"AssociationClass({self.name}, {self.attributes}, {self.association}, {self.timestamp}, {self.synonyms})"
+
 
 class Generalization(Element):
     """Represents a generalization relationship between two classes.
@@ -1046,14 +1870,14 @@ class Generalization(Element):
         general (Class): The general (parent) class in the generalization relationship.
         specific (Class): The specific (child) class in the generalization relationship.
         timestamp (datetime): Object creation datetime (default is current time).
-    
+
     Attributes:
         general (Class): The general (parent) class in the generalization relationship.
         specific (Class): The specific (child) class in the generalization relationship.
         timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
     """
 
-    def __init__(self, general: Class, specific: Class, timestamp: int = None):
+    def __init__(self, general: Class, specific: Class, timestamp: datetime = None):
         self.general: Class = general
         self.specific: Class = specific
         self.timestamp: datetime = timestamp
@@ -1080,7 +1904,7 @@ class Generalization(Element):
     def specific(self, specific: Class):
         """
         Class: Set the specific (child) class.
-        
+
         Raises:
             ValueError: if the general class is equal to the specific class
         """
@@ -1094,15 +1918,16 @@ class Generalization(Element):
     @property
     def timestamp(self) -> datetime:
         """str: Get the timestamp of the generalization."""
-        return self.__datestamp
+        return self.__timestamp
 
     @timestamp.setter
     def timestamp(self, timestamp: datetime):
         """str: Set the timestamp of the generalization."""
-        self.__datestamp = timestamp
+        self.__timestamp = timestamp
 
     def __repr__(self):
-        return f'Generalization({self.general}, {self.specific}, {self.timestamp})'
+        return f"Generalization({self.general}, {self.specific}, {self.timestamp})"
+
 
 class GeneralizationSet(NamedElement):
     """Represents a set of generalization relationships.
@@ -1128,8 +1953,15 @@ class GeneralizationSet(NamedElement):
         synonyms (List[str]): List of synonyms of the generalization set (None as default).
     """
 
-    def __init__(self, name: str, generalizations: set[Generalization], is_disjoint: bool,
-                 is_complete: bool, timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        generalizations: set[Generalization],
+        is_disjoint: bool,
+        is_complete: bool,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.generalizations: set[Generalization] = generalizations
         self.is_disjoint: bool = is_disjoint
@@ -1167,9 +1999,10 @@ class GeneralizationSet(NamedElement):
 
     def __repr__(self):
         return (
-            f'GeneralizationSet({self.name}, {self.generalizations}, '
-            f'is_disjoint={self.is_disjoint}, is_complete={self.is_complete}, {self.timestamp}, {self.synonyms})'
+            f"GeneralizationSet({self.name}, {self.generalizations}, "
+            f"is_disjoint={self.is_disjoint}, is_complete={self.is_complete}, {self.timestamp}, {self.synonyms})"
         )
+
 
 class Package(NamedElement):
     """A Package is a grouping mechanism that allows organizing and managing a set of classes.
@@ -1179,7 +2012,7 @@ class Package(NamedElement):
         classes (set[Class]): The set of classes contained in the package.
         timestamp (datetime): Object creation datetime (default is current time).
         synonyms (List[str]): List of synonyms of the package (None as default).
-    
+
     Attributes:
         name (str): Inherited from NamedElement, represents the name of the package.
         classes (set[Class]): The set of classes contained in the package.
@@ -1187,7 +2020,13 @@ class Package(NamedElement):
         synonyms (List[str]): List of synonyms of the package (None as default).
     """
 
-    def __init__(self, name: str, classes: set[Class], timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        classes: set[Class],
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.classes: set[Class] = classes
 
@@ -1202,7 +2041,10 @@ class Package(NamedElement):
         self.__classes = classes
 
     def __repr__(self):
-        return f'Package({self.name}, {self.classes}), {self.timestamp}, {self.synonyms}'
+        return (
+            f"Package({self.name}, {self.classes}), {self.timestamp}, {self.synonyms}"
+        )
+
 
 class Constraint(NamedElement):
     """A Constraint is a statement that restricts or defines conditions on the behavior,
@@ -1225,8 +2067,15 @@ class Constraint(NamedElement):
         synonyms (List[str]): List of synonyms of the constraint (None as default).
     """
 
-    def __init__(self, name: str, context: Class, expression: Any, language: str, timestamp: int = None,
-                 synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        context: Class,
+        expression: Any,
+        language: str,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.context: Class = context
         self.expression: str = expression
@@ -1263,7 +2112,8 @@ class Constraint(NamedElement):
         self.__language = language
 
     def __repr__(self):
-        return f'Constraint({self.name}, {self.context.name}, {self.language}, {self.expression}, {self.timestamp})'
+        return f"Constraint({self.name}, {self.context.name}, {self.language}, {self.expression}, {self.timestamp})"
+
 
 class Model(NamedElement):
     """A model is the root element. A model is the root element. There are different types of models
@@ -1273,17 +2123,21 @@ class Model(NamedElement):
         name (str): The name of the model.
         timestamp (datetime): Object creation datetime (default is current time).
         synonyms (List[str]): List of synonyms of the model (None as default).
-        
+
     Attributes:
         name (str): Inherited from NamedElement, represents the name of the model.
         timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
         synonyms (List[str]): List of synonyms of the model (None as default).
     """
-    def __init__(self, name: str, timestamp: int = None, synonyms: List[str] = None):
+
+    def __init__(
+        self, name: str, timestamp: datetime = None, synonyms: List[str] = None
+    ):
         super().__init__(name, timestamp, synonyms)
 
+
 class DomainModel(Model):
-    """A domain model comprises a number of types, associations, 
+    """A domain model comprises a number of types, associations,
     generalizations, packages, constraints, and others.
 
     Args:
@@ -1307,15 +2161,29 @@ class DomainModel(Model):
         synonyms (List[str]): List of synonyms of the domain model (None as default).
     """
 
-    def __init__(self, name: str, types: set[Type] = None, associations: set[Association] = None,
-                 generalizations: set[Generalization] = None, packages: set[Package] = None,
-                 constraints: set[Constraint] = None, timestamp: int = None, synonyms: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        types: set[Type] = None,
+        associations: set[Association] = None,
+        generalizations: set[Generalization] = None,
+        packages: set[Package] = None,
+        constraints: set[Constraint] = None,
+        timestamp: datetime = None,
+        synonyms: List[str] = None,
+    ):
         super().__init__(name, timestamp, synonyms)
         self.types: set[Type] = types if types is not None else set()
         self.packages: set[Package] = packages if packages is not None else set()
-        self.constraints: set[Constraint] = constraints if constraints is not None else set()
-        self.associations: set[Association] = associations if associations is not None else set()
-        self.generalizations: set[Generalization] = generalizations if generalizations is not None else set()
+        self.constraints: set[Constraint] = (
+            constraints if constraints is not None else set()
+        )
+        self.associations: set[Association] = (
+            associations if associations is not None else set()
+        )
+        self.generalizations: set[Generalization] = (
+            generalizations if generalizations is not None else set()
+        )
 
     @property
     def types(self) -> set[Type]:
@@ -1326,7 +2194,7 @@ class DomainModel(Model):
     def types(self, types: set[Type]):
         """
         set[Type]: Set the set of types in the domain model, including primitive data types.
-        
+
         Raises:
             ValueError: if there are two types with the same name.
         """
@@ -1340,14 +2208,21 @@ class DomainModel(Model):
             names_seen.add(type_.name)
 
         if duplicates:
-            raise ValueError(f"The model cannot have types with duplicate names: {', '.join(duplicates)}")
+            raise ValueError(
+                f"The model cannot have types with duplicate names: {', '.join(duplicates)}"
+            )
         self.__types = types
 
     def get_type_by_name(self, type_name: str) -> Type:
         """Type: Gets an Type by name."""
         return next(
-            (type_element for type_element in self.types if type_element.name == type_name), None
-            )
+            (
+                type_element
+                for type_element in self.types
+                if type_element.name == type_name
+            ),
+            None,
+        )
 
     def add_type(self, type_: Type):
         """Type: Add a type (Class or DataType) to the set of types of the model."""
@@ -1362,7 +2237,7 @@ class DomainModel(Model):
     def associations(self, associations: set[Association]):
         """
         set[Association]: Set the set of associations in the domain model.
-        
+
         Raises:
             ValueError: if there are two associations with the same name.
         """
@@ -1376,7 +2251,9 @@ class DomainModel(Model):
                 names_seen.add(association.name)
 
             if duplicates:
-                raise ValueError(f"The model cannot have associations with duplicate names: {', '.join(duplicates)}")
+                raise ValueError(
+                    f"The model cannot have associations with duplicate names: {', '.join(duplicates)}"
+                )
 
             self.__associations = associations
         else:
@@ -1416,7 +2293,7 @@ class DomainModel(Model):
     def packages(self, packages: set[Package]):
         """
         set[Package]: Get the set of packages in the domain model.
-        
+
         Raises:
             ValueError: if there are two packages with the same name.
         """
@@ -1430,7 +2307,9 @@ class DomainModel(Model):
                 names_seen.add(package.name)
 
             if duplicates:
-                raise ValueError(f"The model cannot have packages with duplicate names: {', '.join(duplicates)}")
+                raise ValueError(
+                    f"The model cannot have packages with duplicate names: {', '.join(duplicates)}"
+                )
 
             self.__packages = packages
         else:
@@ -1445,14 +2324,16 @@ class DomainModel(Model):
     def constraints(self, constraints: set[Constraint]):
         """
         set[Constraint]: Get the set of constraints in the domain model.
-        
+
         Raises:
             ValueError: if there are two constraints with the same name.
         """
         if constraints is not None:
             names = [constraint.name for constraint in constraints]
             if len(names) != len(set(names)):
-                raise ValueError("The model cannot have two constraints with the same name")
+                raise ValueError(
+                    "The model cannot have two constraints with the same name"
+                )
             self.__constraints = constraints
         else:
             self.__constraints = set()
@@ -1464,9 +2345,13 @@ class DomainModel(Model):
     def get_class_by_name(self, class_name: str) -> Class:
         """Class: Gets a class by name."""
         return next(
-            (element for element in self.types if isinstance(element, Class) and
-             element.name == class_name), None
-            )
+            (
+                element
+                for element in self.types
+                if isinstance(element, Class) and element.name == class_name
+            ),
+            None,
+        )
 
     def classes_sorted_by_inheritance(self) -> list[Class]:
         """list[Class]: Get the list of classes ordered by inheritance."""
@@ -1477,6 +2362,7 @@ class DomainModel(Model):
         for cl in classes:
             for generalization in cl.generalizations:
                 child_map[generalization.general].add(cl)
+
         # Helper function for DFS
         def dfs(cl, visited, sorted_list):
             visited.add(cl)
@@ -1484,6 +2370,7 @@ class DomainModel(Model):
                 if child not in visited:
                     dfs(child, visited, sorted_list)
             sorted_list.append(cl)
+
         # Perform DFS from each node that hasn't been visited yet
         visited = set()
         sorted_list = []
@@ -1495,6 +2382,6 @@ class DomainModel(Model):
 
     def __repr__(self):
         return (
-            f'Package({self.name}, {self.types}, {self.associations}, {self.generalizations}, '
-            f'{self.packages}, {self.constraints}, {self.timestamp}, {self.synonyms})'
+            f"Package({self.name}, {self.types}, {self.associations}, {self.generalizations}, "
+            f"{self.packages}, {self.constraints}, {self.timestamp}, {self.synonyms})"
         )
