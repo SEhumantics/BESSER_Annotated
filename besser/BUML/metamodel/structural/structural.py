@@ -1,7 +1,7 @@
 import time
 from abc import ABC
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Set, Union, Optional
 
 # Constant - Represents the unlimited value for the maximum multiplicity (capped at 9999).
 UNLIMITED_MAX_MULTIPLICITY: int = int(9999)
@@ -9,6 +9,8 @@ UNLIMITED_MAX_MULTIPLICITY: int = int(9999)
 
 class Element(ABC):
     """The `Element` class is the superclass of all structural elements in the B-UML metamodel.
+
+    This class inherits from the `ABC` class.
 
     Notes
     -----
@@ -32,7 +34,7 @@ class NamedElement(Element):
         The object creation datetime. By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
+    synonyms : Optional[List[str]]
         The list of synonyms of the named element. By default it is `None`.
 
     visibility : str
@@ -43,10 +45,10 @@ class NamedElement(Element):
     name : str
         The name of the named element.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the named element.
 
     visibility : str, optional
@@ -56,8 +58,8 @@ class NamedElement(Element):
     def __init__(
         self,
         name: str,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
         visibility: str = "public",
     ):
         """Initialize an instace of the `NamedElement` class.
@@ -77,7 +79,7 @@ class NamedElement(Element):
         )
 
         # Set the list of synonyms of the named element.
-        self.synonyms: List[str] = synonyms
+        self.synonyms: Optional[List[str]] = synonyms
 
         # Set the visibility of the named element.
         self.visibility: str = visibility
@@ -131,6 +133,30 @@ class NamedElement(Element):
         self.__timestamp = timestamp
 
     @property
+    def synonyms(self) -> Optional[List[str]]:
+        """Get the list of synonyms of the named element.
+
+        Returns
+        -------
+        synonyms : Optional[List[str]]
+            The list of synonyms of the named element.
+        """
+        # Return the list of synonyms of the named element.
+        return self.__synonyms
+
+    @synonyms.setter
+    def synonyms(self, synonyms: List[str]):
+        """Set the list of synonyms of the named element.
+
+        Parameters
+        ----------
+        synonyms : List[str]
+            The list of synonyms of the named element.
+        """
+        # Set the list of synonyms of the named element.
+        self.__synonyms = synonyms
+
+    @property
     def visibility(self) -> str:
         """Get the visibility of the named element.
 
@@ -158,34 +184,10 @@ class NamedElement(Element):
         """
         # Check if the provided visibility is valid.
         if visibility not in ["public", "private", "protected", "package"]:
-            raise ValueError("Invalid value of visibility")
+            raise ValueError("Invalid value of visibility.")
 
         # Set the visibility of the named element.
         self.__visibility = visibility
-
-    @property
-    def synonyms(self) -> List[str]:
-        """Get the list of synonyms of the named element.
-
-        Returns
-        -------
-        synonyms : List[str]
-            The list of synonyms of the named element.
-        """
-        # Return the list of synonyms of the named element.
-        return self.__synonyms
-
-    @synonyms.setter
-    def synonyms(self, synonyms: List[str]):
-        """Set the list of synonyms of the named element.
-
-        Parameters
-        ----------
-        synonyms : List[str]
-            The list of synonyms of the named element.
-        """
-        # Set the list of synonyms of the named element.
-        self.__synonyms = synonyms
 
 
 class Type(NamedElement):
@@ -203,7 +205,7 @@ class Type(NamedElement):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
+    synonyms : Optional[List[str]]
         The list of synonyms of the type. Inherits from `NamedElement`.
         By default it is `None`.
 
@@ -212,15 +214,18 @@ class Type(NamedElement):
     name : str
         The name of the type.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the type.
     """
 
     def __init__(
-        self, name: str, timestamp: datetime = None, synonyms: List[str] = None
+        self,
+        name: str,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `Type` class.
 
@@ -269,7 +274,8 @@ class PrimitiveDataType(DataType):
     This class inherits from the `DataType` class.
     """
 
-    @NamedElement.name.setter
+    @NamedElement.name.setter  # type: ignore
+    # Mypy does not recognize the setter decorator. See more: https://github.com/python/mypy/issues/5936.
     def name(self, name: str):
         """Set the name of the `PrimitiveDataType`.
 
@@ -297,7 +303,7 @@ class PrimitiveDataType(DataType):
             "datetime",
             "timedelta",
         ]:
-            raise ValueError("Invalid primitive data type")
+            raise ValueError("Invalid primitive data type.")
 
         # Set the name of the `PrimitiveDataType`.
         super(PrimitiveDataType, PrimitiveDataType).name.fset(self, name)
@@ -349,7 +355,7 @@ class EnumerationLiteral(NamedElement):
     name : str
         The name of the enumeration literal. Inherits from `NamedElement`.
 
-    owner : DataType
+    owner : Optional[DataType]
         The owner data type of the enumeration literal. By default it is `None`.
 
     timestamp : datetime
@@ -357,7 +363,7 @@ class EnumerationLiteral(NamedElement):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
+    synonyms : Optional[List[str]]
         The list of synonyms of the enumeration literal. Inherits from `NamedElement`.
         By default it is `None`.
 
@@ -366,22 +372,22 @@ class EnumerationLiteral(NamedElement):
     name : str
         The name of the enumeration literal.
 
-    owner : DataType, optional
+    owner : Optional[DataType]
         The owner data type of the enumeration literal.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the enumeration literal.
     """
 
     def __init__(
         self,
         name: str,
-        owner: DataType = None,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        owner: Optional[DataType] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `EnumerationLiteral` class.
 
@@ -391,26 +397,26 @@ class EnumerationLiteral(NamedElement):
         super().__init__(name, timestamp, synonyms)
 
         # Set the owner data type of the enumeration literal.
-        self.owner: DataType = owner
+        self.owner: Optional[DataType] = owner
 
     @property
-    def owner(self) -> DataType:
+    def owner(self) -> Optional[DataType]:
         """Get the owner data type of the enumeration literal.
 
         Returns
         -------
-        owner : DataType
+        owner : Optional[DataType]
             The owner data type of the enumeration literal.
         """
         return self.__owner
 
     @owner.setter
-    def owner(self, owner: DataType):
+    def owner(self, owner: Optional[DataType]):
         """Set the owner data type of the enumeration literal.
 
         Parameters
         ----------
-        owner : DataType
+        owner : Optional[DataType]
             The owner data type of the enumeration literal.
 
         Raises
@@ -421,7 +427,7 @@ class EnumerationLiteral(NamedElement):
 
         # Check if the owner is an instance of `PrimitiveDataType`.
         if isinstance(owner, PrimitiveDataType):
-            raise ValueError("Invalid owner")
+            raise ValueError("Invalid owner.")
 
         # Set the owner data type of the enumeration literal.
         self.__owner = owner
@@ -458,7 +464,7 @@ class Enumeration(DataType):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
+    synonyms : Optional[List[str]]
         The list of synonyms of the enumeration. Inherits from `DataType`.
         By default it is `None`.
 
@@ -467,15 +473,15 @@ class Enumeration(DataType):
     name : str
         The name of the enumeration data type.
 
-    literals : Set[EnumerationLiteral], optional
+    literals : Optional[Set[EnumerationLiteral]]
         The set of enumeration literals associated with the enumeration.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the enumeration.
-    
+
     Methods
     -------
     add_literal(literal)
@@ -485,9 +491,9 @@ class Enumeration(DataType):
     def __init__(
         self,
         name: str,
-        literals: Set[EnumerationLiteral] = None,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        literals: Optional[Set[EnumerationLiteral]] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `Enumeration` class.
 
@@ -514,14 +520,14 @@ class Enumeration(DataType):
         return self.__literals
 
     @literals.setter
-    def literals(self, literals: Set[EnumerationLiteral]):
+    def literals(self, literals: Optional[Set[EnumerationLiteral]]):
         """Set the set of enumeration literals associated with the enumeration.
 
         If the set of enumeration literals is `None`, set it to an empty set.
 
         Parameters
         ----------
-        literals : Set[EnumerationLiteral]
+        literals : Optional[Set[EnumerationLiteral]]
             The set of enumeration literals associated with the enumeration.
 
         Raises
@@ -533,11 +539,13 @@ class Enumeration(DataType):
         if literals is not None:
             # For each enumeration literal in the set of enumeration literals.
             names = [literal.name for literal in literals]
+
             # Check if the enumeration literal name already exists.
             if len(names) != len(set(names)):
                 raise ValueError(
                     "An enumeration cannot have two literals with the same name"
                 )
+
             # Set the set of enumeration literals associated with the enumeration.
             for literal in literals:
                 literal.owner = self
@@ -567,8 +575,9 @@ class Enumeration(DataType):
                 raise ValueError(
                     f"An enumeration cannot have two literals with the same name: '{literal.name}'"
                 )
-        # Add the enumeration literal to the set of enumeration literals.
-        self.literals.add(literal)
+
+            # Add the enumeration literal to the set of enumeration literals.
+            self.literals.add(literal)
 
     def __repr__(self) -> str:
         """Return a string representation of the `Enumeration` object.
@@ -592,7 +601,7 @@ class TypedElement(NamedElement):
     Attributes
     ----------
     type_mapping : Dict[str, PrimitiveDataType]
-        A mapping of primitive data types to their corresponding `PrimitiveDataType` instances.
+        A mapping of strings to primitive data types.
 
     name : str
         The name of the typed element. Inherits from `NamedElement`.
@@ -606,7 +615,7 @@ class TypedElement(NamedElement):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
+    synonyms : Optional[List[str]]
         The list of synonyms of the typed element. Inherits from `NamedElement`.
         By default it is `None`.
 
@@ -620,12 +629,12 @@ class TypedElement(NamedElement):
         The name of the typed element.
 
     type : Union[Type, str]
-        The data type of the typed element.
+        The data type of the typed element, as a `PrimitiveDataType` object or a string representing a primitive data type.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the typed element.
 
     visibility : str, optional
@@ -649,19 +658,39 @@ class TypedElement(NamedElement):
         self,
         name: str,
         type: Union[Type, str],
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
         visibility: str = "public",
     ):
         """Initialize an instance of the `TypedElement` class.
 
         See the class docstring for more details on `Parameters` and `Attributes`.
+
+        Raises
+        ------
+        ValueError
+            If the provided type is invalid.
         """
         # Initialize the `NamedElement` superclass.
         super().__init__(name, timestamp, synonyms, visibility)
 
         # Set the data type of the typed element.
-        self.type = self.type_mapping.get(type, type)
+        # Check if the provided type is either a `Type` object or a string.
+        # If it is a `Type` object, assign the provided type to the typed element.
+        if isinstance(type, Type):
+            # Assign the provided type to the typed element.
+            self.type: Type = type
+
+        # If the provided type is a string, check if it is a valid primitive data type. Otherwise, define a new `Type` object and assign it to the typed element.
+        elif isinstance(type, str):
+            # TODO: The original solution `self.type = self.type_mapping.get(type, type)` is not type-safe. This is a temporary workaround (until further decisions).
+            self.type: Type = (
+                self.type_mapping[type] if type in self.type_mapping else Type(type)
+            )
+
+        # If the provided type is neither a `Type` object nor a string, raise an error.
+        else:
+            raise ValueError("Invalid type.")
 
     @property
     def type(self) -> Type:
@@ -713,8 +742,12 @@ class Multiplicity:
 
         See the class docstring for more details on `Parameters` and `Attributes`.
         """
+        # Set the minimum multiplicity.
         self.min: int = min_multiplicity
-        self.max: int = max_multiplicity
+
+        # Set the maximum multiplicity.
+        self.max: int = max_multiplicity  # type: ignore
+        # Mypy does not recognize the setter decorator, but the assignment is type-safe.
 
     @property
     def min(self) -> int:
@@ -744,7 +777,7 @@ class Multiplicity:
         """
         # Check if the minimum multiplicity is less than 0.
         if min_multiplicity < 0:
-            raise ValueError("Invalid min multiplicity")
+            raise ValueError("Invalid min multiplicity.")
         # Set the minimum multiplicity.
         self.__min = min_multiplicity
 
@@ -780,17 +813,34 @@ class Multiplicity:
         ValueError
             If the maximum multiplicity is invalid.
         """
-        # Check if the maximum multiplicity is "*".
-        if max_multiplicity == "*":
-            max_multiplicity = UNLIMITED_MAX_MULTIPLICITY
-        # Check if the maximum multiplicity is less than 0.
-        if max_multiplicity < 0:
-            raise ValueError("Invalid max multiplicity")
-        # Check if the maximum multiplicity is less than the minimum multiplicity.
-        if max_multiplicity < self.min:
-            raise ValueError("Invalid max multiplicity")
-        # Set the maximum multiplicity.
-        self.__max = max_multiplicity
+        # Check if the maximum multiplicity is either an integer or a string.
+        # If it is an integer, check if it is less than 0 and less than the minimum multiplicity.
+        if isinstance(max_multiplicity, int):
+            # Check if the maximum multiplicity is less than 0.
+            if max_multiplicity < 0:
+                raise ValueError("Invalid max multiplicity.")
+
+            # Check if the maximum multiplicity is less than the minimum multiplicity.
+            if max_multiplicity < self.min:
+                raise ValueError("Invalid max multiplicity.")
+
+            # Set the maximum multiplicity.
+            self.__max = max_multiplicity
+
+        # If the maximum multiplicity is a string, check if it is "*" or raise an error.
+        elif isinstance(max_multiplicity, str):
+            # Check if the maximum multiplicity is "*".
+            if max_multiplicity == "*":
+                # Set the maximum multiplicity.
+                self.__max = UNLIMITED_MAX_MULTIPLICITY
+
+            # If the maximum multiplicity is not "*", raise an error.
+            else:
+                raise ValueError("Invalid max multiplicity.")
+
+        # If the maximum multiplicity is neither an integer nor a string, raise an error.
+        else:
+            raise ValueError("Invalid max multiplicity.")
 
     def __repr__(self) -> str:
         """Return a string representation of the `Multiplicity` object.
@@ -820,14 +870,15 @@ class Property(TypedElement):
     type : Type
         The type of the property. Inherits from `TypedElement`.
 
-    owner : Type
+    owner : Optional[Type]
         The type that owns the property. By default it is `None`.
 
     multiplicity : Multiplicity
         The multiplicity of the property. By default it is `Multiplicity(1, 1)`.
 
     visibility : str
-        Determines the kind of visibility of the property. By default it is `public`.
+        Determines the kind of visibility of the property. Inherits from `TypedElement`.
+        By default it is `public`.
 
     is_composite : bool
         Indicates whether the property is a composite. By default it is `False`.
@@ -858,10 +909,10 @@ class Property(TypedElement):
     type : Type
         The type of the property.
 
-    owner : Type, optional
+    owner : Optional[Type]
         The type that owns the property.
 
-    multiplicity : Multiplicity, optional
+    multiplicity : Optional[Multiplicity]
         The multiplicity of the property.
 
     visibility : str, optional
@@ -879,10 +930,10 @@ class Property(TypedElement):
     is_read_only : bool, optional
         Indicates whether the property is read only.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the property.
     """
 
@@ -890,15 +941,17 @@ class Property(TypedElement):
         self,
         name: str,
         type: Type,
-        owner: Type = None,
+        owner: Optional[
+            Type
+        ] = None,  # TODO: The original solution `owner: Type = None` is illogical, since a property must have an owner (i.e. a class or an association). However, this temporary solution (turn `Type` into `Optional[Type]`) is for annotating nullable values (until further decisions).
         multiplicity: Multiplicity = Multiplicity(1, 1),
         visibility: str = "public",
         is_composite: bool = False,
         is_navigable: bool = True,
         is_id: bool = False,
         is_read_only: bool = False,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `Property` class.
 
@@ -908,7 +961,7 @@ class Property(TypedElement):
         super().__init__(name, type, timestamp, synonyms, visibility)
 
         # Set the owner type of the property.
-        self.owner: Type = owner
+        self.owner: Optional[Type] = owner
 
         # Set the multiplicity of the property.
         self.multiplicity: Multiplicity = multiplicity
@@ -926,12 +979,12 @@ class Property(TypedElement):
         self.is_read_only: bool = is_read_only
 
     @property
-    def owner(self) -> Type:
+    def owner(self) -> Optional[Type]:
         """Get the owner type of the property.
 
         Returns
         -------
-        owner : Type
+        owner : Optional[Type]
             The owner type of the property.
         """
         return self.__owner
@@ -952,11 +1005,10 @@ class Property(TypedElement):
         """
         # Check if the owner is an instance of `DataType`.
         if isinstance(owner, DataType):
-            raise ValueError("Invalid owner")
+            raise ValueError("Invalid owner.")
 
         # Set the owner type of the property.
         self.__owner = owner
-
 
     @property
     def is_composite(self) -> bool:
@@ -970,7 +1022,6 @@ class Property(TypedElement):
         """
         return self.__is_composite
 
-
     @is_composite.setter
     def is_composite(self, is_composite: bool):
         """
@@ -982,7 +1033,6 @@ class Property(TypedElement):
             True if the property is composite, False otherwise.
         """
         self.__is_composite = is_composite
-
 
     @property
     def is_navigable(self) -> bool:
@@ -996,7 +1046,6 @@ class Property(TypedElement):
         """
         return self.__is_navigable
 
-
     @is_navigable.setter
     def is_navigable(self, is_navigable: bool):
         """
@@ -1008,7 +1057,6 @@ class Property(TypedElement):
             True if the property is navigable, False otherwise.
         """
         self.__is_navigable = is_navigable
-
 
     @property
     def is_id(self) -> bool:
@@ -1022,7 +1070,6 @@ class Property(TypedElement):
         """
         return self.__is_id
 
-
     @is_id.setter
     def is_id(self, is_id: bool):
         """
@@ -1035,7 +1082,6 @@ class Property(TypedElement):
         """
         self.__is_id = is_id
 
-
     @property
     def is_read_only(self) -> bool:
         """
@@ -1047,7 +1093,6 @@ class Property(TypedElement):
             True if the property is read only, False otherwise.
         """
         return self.__is_read_only
-
 
     @is_read_only.setter
     def is_read_only(self, is_read_only: bool):
@@ -1064,7 +1109,7 @@ class Property(TypedElement):
     def __repr__(self) -> str:
         """Return a string representation of the `Property` object.
 
-        The string representation includes the `name`, `visibility`, `type`, `multiplicity`, 
+        The string representation includes the `name`, `visibility`, `type`, `multiplicity`,
         `is_composite`, `is_id`, `is_read_only`, `timestamp`, and `synonyms` of the `Property` object.
 
         Returns
@@ -1100,8 +1145,9 @@ class Parameter(TypedElement):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
-        The list of synonyms of the parameter. By default it is `None`.
+    synonyms : Optional[List[str]]
+        The list of synonyms of the parameter. Inherits from `TypedElement`.
+        By default it is `None`.
 
     Parameters
     ----------
@@ -1114,10 +1160,10 @@ class Parameter(TypedElement):
     default_value : Any, optional
         The default value of the parameter.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the parameter.
     """
 
@@ -1126,8 +1172,8 @@ class Parameter(TypedElement):
         name: str,
         type: Type,
         default_value: Any = None,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `Parameter` class.
 
@@ -1181,7 +1227,6 @@ class Method(TypedElement):
 
     This class inherits from the `TypedElement` class.
 
-
     Attributes
     ----------
     name : str
@@ -1211,8 +1256,9 @@ class Method(TypedElement):
         By default it is set to the actual object creation time.
         See the `__init__` method for more details.
 
-    synonyms : List[str]
-        The list of synonyms of the method. By default it is `None`.
+    synonyms : Optional[List[str]]
+        The list of synonyms of the method. Inherits from `TypedElement`.
+        By default it is `None`.
 
     Parameters
     ----------
@@ -1225,22 +1271,22 @@ class Method(TypedElement):
     is_abstract : bool, optional
         Indicates whether the method is abstract.
 
-    parameters : Set[Parameter], optional
+    parameters : Optional[Set[Parameter]]
         The set of parameters of the method.
 
-    type : Type, optional
+    type : Optional[Type]
         The type of the method.
 
-    owner : Type, optional
+    owner : Optional[Type]
         The type that owns the method.
 
     code : str, optional
         The code of the method.
 
-    timestamp : datetime, optional
+    timestamp : Optional[datetime]
         The object creation datetime.
 
-    synonyms : List[str], optional
+    synonyms : Optional[List[str]]
         The list of synonyms of the method.
 
     Methods
@@ -1254,19 +1300,26 @@ class Method(TypedElement):
         name: str,
         visibility: str = "public",
         is_abstract: bool = False,
-        parameters: Set[Parameter] = None,
-        type: Type = None,
-        owner: Type = None,
+        parameters: Optional[Set[Parameter]] = None,
+        type: Optional[
+            Type
+        ] = None,  # TODO: The original solution `type: Type = None` is illogical, since a method must have a type (even if its `OclVoid`). However, this temporary solution (turn `Type` into `Optional[Type]`) is for annotating nullable values (until further decisions).
+        owner: Optional[
+            Type
+        ] = None,  # TODO: The original solution `owner: Type = None` is illogical, since a method must have an owner (i.e. a class). However, this temporary solution (turn `Type` into `Optional[Type]`) is for annotating nullable values (until further decisions).
         code: str = "",
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         """Initialize an instance of the `Method` class.
 
         See the class docstring for more details on `Parameters` and `Attributes`.
         """
         # Initialize the `TypedElement` superclass.
-        super().__init__(name, type, timestamp, synonyms, visibility)
+        # TODO: As mentioned, the `type` attributes need a better definition. This is a temporary solution (until further decisions).
+        super().__init__(
+            name, "OclVoid" if type is None else type, timestamp, synonyms, visibility
+        )
 
         # Set whether the method is abstract.
         self.is_abstract: bool = is_abstract
@@ -1277,7 +1330,7 @@ class Method(TypedElement):
         )
 
         # Set the owner type of the method.
-        self.owner: Type = owner
+        self.owner: Optional[Type] = owner
 
         # Set the code of the method.
         self.code: str = code
@@ -1345,13 +1398,13 @@ class Method(TypedElement):
                     duplicates.add(parameter.name)
                 names_seen.add(parameter.name)
                 # Also, set the owner of the parameter to the method.
-                # TODO: Check if this code is necessary (since the `Parameter` class does not have an `owner` attribute).
-                parameter.owner = self
+                # TODO: Check if this code below is necessary (since the `Parameter` class does not have an `owner` attribute).
+                # parameter.owner = self -- Commented out for now.
 
             # Check if the method has parameters with duplicate names.
             if duplicates:
                 raise ValueError(
-                    f"A method cannot have parameters with duplicate names: {', '.join(duplicates)}"
+                    f"A method cannot have parameters with duplicate names: {', '.join(duplicates)}."
                 )
 
             # Set the set of parameters of the method.
@@ -1379,19 +1432,19 @@ class Method(TypedElement):
             # Check if the method has two parameters with the same name.
             if parameter.name in [parameter.name for parameter in self.parameters]:
                 raise ValueError(
-                    f"A method cannot have two parameters with the same name: '{parameter.name}'"
+                    f"A method cannot have two parameters with the same name: '{parameter.name}'."
                 )
-            
+
         # Add the parameter to the set of parameters of the method.
         self.parameters.add(parameter)
 
     @property
-    def owner(self) -> Type:
+    def owner(self) -> Optional[Type]:
         """Get the owner type of the method.
 
         Returns
         -------
-        owner : Type
+        owner : Optional[Type]
             The owner type of the method.
         """
         return self.__owner
@@ -1412,8 +1465,8 @@ class Method(TypedElement):
         """
         # Check if the owner is an instance of `DataType`.
         if isinstance(owner, DataType):
-            raise ValueError("Invalid owner")
-        
+            raise ValueError("Invalid owner.")
+
         # Set the owner type of the method.
         self.__owner = owner
 
@@ -1444,7 +1497,7 @@ class Method(TypedElement):
 
         The string representation includes the `name`, `visibility`, `is_abstract`, `parameters`,
         `type`, `owner`, `code`, `timestamp`, and `synonyms` of the `Method` object.
-        
+
         Returns
         -------
         str
@@ -1490,8 +1543,8 @@ class Class(Type):
         methods: set[Method] = None,
         is_abstract: bool = False,
         is_read_only: bool = False,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.is_abstract: bool = is_abstract
@@ -1530,12 +1583,12 @@ class Class(Type):
 
             if duplicates:
                 raise ValueError(
-                    f"A class cannot have attributes with duplicate names: {', '.join(duplicates)}"
+                    f"A class cannot have attributes with duplicate names: {', '.join(duplicates)}."
                 )
 
             if id_counter > 1:
                 raise ValueError(
-                    "A class cannot have more than one attribute marked as 'id'"
+                    "A class cannot have more than one attribute marked as 'id'."
                 )
 
             for attribute in attributes:
@@ -1568,7 +1621,7 @@ class Class(Type):
 
             if duplicates:
                 raise ValueError(
-                    f"A class cannot have methods with duplicate names: {', '.join(duplicates)}"
+                    f"A class cannot have methods with duplicate names: {', '.join(duplicates)}."
                 )
 
             for method in methods:
@@ -1587,7 +1640,7 @@ class Class(Type):
         if self.methods is not None:
             if method.name in [method.name for method in self.methods]:
                 raise ValueError(
-                    f"A class cannot have two methods with the same name: '{method.name}'"
+                    f"A class cannot have two methods with the same name: '{method.name}'."
                 )
         method.owner = self
         self.methods.add(method)
@@ -1607,7 +1660,7 @@ class Class(Type):
         if self.attributes is not None:
             if attribute.name in [attribute.name for attribute in self.attributes]:
                 raise ValueError(
-                    f"A class cannot have two attributes with the same name: '{attribute.name}'"
+                    f"A class cannot have two attributes with the same name: '{attribute.name}'."
                 )
         attribute.owner = self
         self.attributes.add(attribute)
@@ -1752,8 +1805,8 @@ class Association(NamedElement):
         self,
         name: str,
         ends: set[Property],
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.ends: set[Property] = ends
@@ -1772,7 +1825,7 @@ class Association(NamedElement):
             ValueError: if an association has less than two ends.
         """
         if len(ends) <= 1:
-            raise ValueError("An association must have more than one end")
+            raise ValueError("An association must have more than one end.")
         if hasattr(self, "ends"):
             for end in self.ends:
                 end.type._delete_association(association=self)
@@ -1816,9 +1869,9 @@ class BinaryAssociation(Association):
             if both ends are tagged as composition.
         """
         if len(ends) != 2:
-            raise ValueError("A binary association must have exactly two ends")
+            raise ValueError("A binary association must have exactly two ends.")
         if list(ends)[0].is_composite is True and list(ends)[1].is_composite is True:
-            raise ValueError("The composition attribute cannot be tagged at both ends")
+            raise ValueError("The composition attribute cannot be tagged at both ends.")
         super(BinaryAssociation, BinaryAssociation).ends.fset(self, ends)
 
     def __repr__(self):
@@ -1850,8 +1903,8 @@ class AssociationClass(Class):
         name: str,
         attributes: set[Property],
         association: Association,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, attributes, timestamp, synonyms)
         self.association: Association = association
@@ -1887,7 +1940,9 @@ class Generalization(Element):
         timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
     """
 
-    def __init__(self, general: Class, specific: Class, timestamp: datetime = None):
+    def __init__(
+        self, general: Class, specific: Class, timestamp: Optional[datetime] = None
+    ):
         self.general: Class = general
         self.specific: Class = specific
         self.timestamp: datetime = timestamp
@@ -1919,7 +1974,7 @@ class Generalization(Element):
             ValueError: if the general class is equal to the specific class
         """
         if specific == self.general:
-            raise ValueError("A class cannot be a generalization of itself")
+            raise ValueError("A class cannot be a generalization of itself.")
         if hasattr(self, "specific"):
             self.specific._delete_generalization(generalization=self)
         specific._add_generalization(generalization=self)
@@ -1969,8 +2024,8 @@ class GeneralizationSet(NamedElement):
         generalizations: set[Generalization],
         is_disjoint: bool,
         is_complete: bool,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.generalizations: set[Generalization] = generalizations
@@ -2034,8 +2089,8 @@ class Package(NamedElement):
         self,
         name: str,
         classes: set[Class],
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.classes: set[Class] = classes
@@ -2083,8 +2138,8 @@ class Constraint(NamedElement):
         context: Class,
         expression: Any,
         language: str,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.context: Class = context
@@ -2141,7 +2196,10 @@ class Model(NamedElement):
     """
 
     def __init__(
-        self, name: str, timestamp: datetime = None, synonyms: List[str] = None
+        self,
+        name: str,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
 
@@ -2179,8 +2237,8 @@ class DomainModel(Model):
         generalizations: set[Generalization] = None,
         packages: set[Package] = None,
         constraints: set[Constraint] = None,
-        timestamp: datetime = None,
-        synonyms: List[str] = None,
+        timestamp: Optional[datetime] = None,
+        synonyms: Optional[List[str]] = None,
     ):
         super().__init__(name, timestamp, synonyms)
         self.types: set[Type] = types if types is not None else set()
@@ -2219,7 +2277,7 @@ class DomainModel(Model):
 
         if duplicates:
             raise ValueError(
-                f"The model cannot have types with duplicate names: {', '.join(duplicates)}"
+                f"The model cannot have types with duplicate names: {', '.join(duplicates)}."
             )
         self.__types = types
 
@@ -2262,7 +2320,7 @@ class DomainModel(Model):
 
             if duplicates:
                 raise ValueError(
-                    f"The model cannot have associations with duplicate names: {', '.join(duplicates)}"
+                    f"The model cannot have associations with duplicate names: {', '.join(duplicates)}."
                 )
 
             self.__associations = associations
@@ -2318,7 +2376,7 @@ class DomainModel(Model):
 
             if duplicates:
                 raise ValueError(
-                    f"The model cannot have packages with duplicate names: {', '.join(duplicates)}"
+                    f"The model cannot have packages with duplicate names: {', '.join(duplicates)}."
                 )
 
             self.__packages = packages
@@ -2342,7 +2400,7 @@ class DomainModel(Model):
             names = [constraint.name for constraint in constraints]
             if len(names) != len(set(names)):
                 raise ValueError(
-                    "The model cannot have two constraints with the same name"
+                    "The model cannot have two constraints with the same name."
                 )
             self.__constraints = constraints
         else:
