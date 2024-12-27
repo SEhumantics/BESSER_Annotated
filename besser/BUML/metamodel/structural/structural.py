@@ -322,26 +322,17 @@ class PrimitiveDataType(DataType):
         return f"PrimitiveDataType({self.name}, {self.timestamp}, {self.synonyms})"
 
 
-# Define instances of `PrimitiveDataType`.
-StringType = PrimitiveDataType("str")
-IntegerType = PrimitiveDataType("int")
-FloatType = PrimitiveDataType("float")
-BooleanType = PrimitiveDataType("bool")
-TimeType = PrimitiveDataType("time")
-DateType = PrimitiveDataType("date")
-DateTimeType = PrimitiveDataType("datetime")
-TimeDeltaType = PrimitiveDataType("timedelta")
-
 # Define a set of primitive data types.
+# TODO: Should this encapsulation using walrus operator (:=) be kept? It should function the same way as the original solution, but it puts those PrimitiveDataType instances into the context of the primitive_data_types set (and is also available in the global context). See https://peps.python.org/pep-0572/ for more details. See also https://realpython.com/python-walrus-operator/ for a more readable explanation.
 primitive_data_types: Set[PrimitiveDataType] = {
-    StringType,
-    IntegerType,
-    FloatType,
-    BooleanType,
-    TimeType,
-    DateType,
-    DateTimeType,
-    TimeDeltaType,
+    (StringType := PrimitiveDataType("str")),
+    (IntegerType := PrimitiveDataType("int")),
+    (FloatType := PrimitiveDataType("float")),
+    (BooleanType := PrimitiveDataType("bool")),
+    (TimeType := PrimitiveDataType("time")),
+    (DateType := PrimitiveDataType("date")),
+    (DateTimeType := PrimitiveDataType("datetime")),
+    (TimeDeltaType := PrimitiveDataType("timedelta")),
 }
 
 
@@ -557,6 +548,9 @@ class Enumeration(DataType):
 
     def add_literal(self, literal: EnumerationLiteral):
         """Add an enumeration literal to the set of enumeration literals associated with the enumeration.
+
+        TODO: Refer to this as `Type_Safety_of_Add_Methods` (as this issues happens in other classes as well).
+        Check if this is type-safe. As the `literals` attribute is `Set[EnumerationLiteral]` (non-nullable) and has a default value of `set()`, the `add_literal` method should be type-safe (therefore "Check if the set of enumeration literals is not `None`" is not necessary). However, this should be confirmed.
 
         Parameters
         ----------
@@ -1371,14 +1365,14 @@ class Method(TypedElement):
         return self.__parameters
 
     @parameters.setter
-    def parameters(self, parameters: Set[Parameter]):
+    def parameters(self, parameters: Optional[Set[Parameter]]):
         """Set the parameters of the method.
 
         If the set of parameters is `None`, set it to an empty set.
 
         Parameters
         ----------
-        parameters : Set[Parameter]
+        parameters : Optional[Set[Parameter]]
             The parameters of the method.
 
         Raises
@@ -1417,6 +1411,8 @@ class Method(TypedElement):
     def add_parameter(self, parameter: Parameter):
         """Add a parameter to the set of parameters of the method.
 
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+
         Parameters
         ----------
         parameter : Parameter
@@ -1435,8 +1431,8 @@ class Method(TypedElement):
                     f"A method cannot have two parameters with the same name: '{parameter.name}'."
                 )
 
-        # Add the parameter to the set of parameters of the method.
-        self.parameters.add(parameter)
+            # Add the parameter to the set of parameters of the method.
+            self.parameters.add(parameter)
 
     @property
     def owner(self) -> Optional[Type]:
@@ -1510,140 +1506,253 @@ class Method(TypedElement):
 
 
 class Class(Type):
-    """Represents a class in a modeling context.
+    """The `Class` class represents a class in the B-UML metamodel.
 
-    A Class is a type that defines a blueprint for objects. It can have attributes, associations,
+    A class is a type that defines a blueprint for objects. It can have attributes, associations,
     and generalizations with other classes.
 
-    Args:
-        name (str): The name of the class.
-        attributes (set[Property]): The set of attributes associated with the class (set() as default).
-        methods (set[Method]): The set of methods of the class (set() as default).
-        is_abstract (bool): Indicates whether the class is abstract (False as default).
-        is_read_only (bool): Indicates whether the class is read only (False as default).
-        timestamp (datetime): Object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the class (None as default).
+    This class inherits from the `Type` class.
 
-    Attributes:
-        name (str): Inherited from Type, represents the name of the class.
-        attributes (set[Property]): The set of attributes associated with the class (set() as default).
-        methods (set[Method]): The set of methods of the class (set() as default).
-        is_abstract (bool): Indicates whether the class is abstract (False as default).
-        is_read_only (bool): Indicates whether the class is read only (False as default).
-        __associations (set[Association]): Set of associations involving the class.
-        __generalizations (set[Generalization]): Set of generalizations involving the class.
-        timestamp (datetime): Inherited from NamedElement; object creation datetime (default is current time).
-        synonyms (List[str]): List of synonyms of the class (None as default).
+    TODO: Should `__associations` and `__generalizations` be named `associations` and `generalizations`?
+
+    Attributes
+    ----------
+    name : str
+        The name of the class. Inherits from `Type`.
+
+    attributes : Set[Property]
+        The set of attributes associated with the class. By default it is an empty set.
+        See the `__init__` method for more details.
+
+    methods : Set[Method]
+        The set of methods of the class. By default it is an empty set.
+        See the `__init__` method for more details.
+
+    is_abstract : bool
+        Indicates whether the class is abstract. By default it is `False`.
+
+    is_read_only : bool
+        Indicates whether the class is read only. By default it is `False`.
+
+    timestamp : datetime
+        The object creation datetime. Inherits from `Type`.
+        By default it is set to the actual object creation time.
+        See the `__init__` method for more details.
+
+    __associations : Set[Association]
+        Set of associations involving the class. Inherits from `Type`.
+        Initialized as an empty set.
+
+    __generalizations : Set[Generalization]
+        Set of generalizations involving the class. Inherits from `Type`.
+        Initialized as an empty set.
+
+    Parameters
+    ----------
+    name: str
+        The name of the class.
+
+    attributes: Optional[Set[Property]]
+        The set of attributes associated with the class.
+
+    methods: Optional[Set[Method]]
+        The set of methods of the class.
+
+    is_abstract: bool, optional
+        Indicates whether the class is abstract.
+
+    is_read_only: bool, optional
+        Indicates whether the class is read only.
+
+    timestamp: Optional[datetime]
+        The object creation datetime.
+
+    synonyms: Optional[List[str]]
+        The list of synonyms of the class.
+
+    Methods
+    -------
+    TODO
     """
 
     def __init__(
         self,
         name: str,
-        attributes: set[Property] = None,
-        methods: set[Method] = None,
+        attributes: Optional[Set[Property]] = None,
+        methods: Optional[Set[Method]] = None,
         is_abstract: bool = False,
         is_read_only: bool = False,
         timestamp: Optional[datetime] = None,
         synonyms: Optional[List[str]] = None,
     ):
+        # Initialize the `Type` superclass.
         super().__init__(name, timestamp, synonyms)
+
+        # Set whether the class is abstract.
         self.is_abstract: bool = is_abstract
+
+        # Set whether the class is read only.
         self.is_read_only: bool = is_read_only
-        self.attributes: set[Property] = attributes if attributes is not None else set()
-        self.methods: set[Method] = methods if methods is not None else set()
-        self.__associations: set[Association] = set()
-        self.__generalizations: set[Generalization] = set()
+
+        # Set the set of attributes associated with the class.
+        self.attributes: Set[Property] = attributes if attributes is not None else set()
+
+        # Set the set of methods of the class.
+        self.methods: Set[Method] = methods if methods is not None else set()
+
+        # Set of associations involving the class.
+        self.__associations: Set[Association] = set()
+
+        # Set of generalizations involving the class.
+        self.__generalizations: Set[Generalization] = set()
 
     @property
-    def attributes(self) -> set[Property]:
-        """set[Property]: Get the attributes of the class."""
+    def attributes(self) -> Set[Property]:
+        """Get the attributes of the class.
+
+        Returns
+        -------
+        Set[Property]
+            The attributes of the class
+        """
+        # Return the attributes of the class.
         return self.__attributes
 
     @attributes.setter
-    def attributes(self, attributes: set[Property]):
-        """
-        set[Property]: Set the attributes of the class.
+    def attributes(self, attributes: Optional[Set[Property]]):
+        """Set the attributes of the class.
 
-        Raises:
-            ValueError: if two attributes have the same name.
-            ValueError: if two attributes are id.
+        If the set of attributes is `None`, set it to an empty set.
+
+        Parameters
+        ----------
+        attributes : Set[Property]
+            The attributes of the class.
+
+        Raises
+        ------
+        ValueError
+            If the class has attributes with duplicate names.
+
+        ValueError
+            If the class has more than one attribute marked as 'id'.
         """
+        # Check if the set of attributes is not `None`.
         if attributes is not None:
+            # Define a set of names seen and a set of duplicates, and a counter for the number of 'id' attributes.
             names_seen = set()
             duplicates = set()
             id_counter = 0
 
+            # For each attribute in the set of attributes, check if the attribute name already exists.
             for attribute in attributes:
                 if attribute.name in names_seen:
                     duplicates.add(attribute.name)
                 names_seen.add(attribute.name)
 
+                # Also, check if the attribute is marked as 'id'.
                 if attribute.is_id:
                     id_counter += 1
 
+            # Check if the class has attributes with duplicate names.
             if duplicates:
                 raise ValueError(
                     f"A class cannot have attributes with duplicate names: {', '.join(duplicates)}."
                 )
 
+            # Check if the class has more than one attribute marked as 'id'.
             if id_counter > 1:
                 raise ValueError(
                     "A class cannot have more than one attribute marked as 'id'."
                 )
 
+            # Set the set of attributes of the class.
             for attribute in attributes:
                 attribute.owner = self
             self.__attributes = attributes
+
+        # If the set of attributes is `None`, set it to an empty set.
         else:
             self.__attributes = set()
 
     @property
-    def methods(self) -> set[Method]:
-        """set[Method]: Get the methods of the class."""
+    def methods(self) -> Set[Method]:
+        """Get the methods of the class.
+
+        Returns
+        -------
+        set[Method]
+            The methods of the class.
+        """
+        # Return the methods of the class.
         return self.__methods
 
     @methods.setter
-    def methods(self, methods: set[Method]):
-        """
-        set[Method]: Set the methods of the class.
+    def methods(self, methods: Set[Method]):
+        """Set the methods of the class.
 
-        Raises:
-            ValueError: if two methods have the same name.
+        If the set of methods is `None`, set it to an empty set.
+
+        Parameters
+        ----------
+        methods : set[Method]
+            The methods of the class.
+
+        Raises
+        ------
+        ValueError
+            If the class has methods with duplicate names.
         """
+        # Check if the set of methods is not `None`.
         if methods is not None:
+            # Define a set of names seen and a set of duplicates.
             names_seen = set()
             duplicates = set()
 
+            # For each method in the set of methods, check if the method name already exists.
             for method in methods:
                 if method.name in names_seen:
                     duplicates.add(method.name)
                 names_seen.add(method.name)
 
+            # Check if the class has methods with duplicate names.
             if duplicates:
                 raise ValueError(
                     f"A class cannot have methods with duplicate names: {', '.join(duplicates)}."
                 )
 
+            # Set the set of methods of the class.
             for method in methods:
                 method.owner = self
             self.__methods = methods
+
+        # If the set of methods is `None`, set it to an empty set.
         else:
             self.__methods = set()
 
     def add_method(self, method: Method):
-        """
-        Method: Add a method to the set of class methods.
+        """Add a method to the set of methods of the class.
 
-        Raises:
-            ValueError: if the method name already exist.
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+
+        Parameters
+        ----------
+        method : Method
+            The method to be added to the set of methods of the class.
+
+        Raises
+        ------
+        ValueError
+            If the class has two methods with the same name.
         """
+        # Check if the set of methods is not `None`.
         if self.methods is not None:
             if method.name in [method.name for method in self.methods]:
                 raise ValueError(
                     f"A class cannot have two methods with the same name: '{method.name}'."
                 )
-        method.owner = self
-        self.methods.add(method)
+            method.owner = self
+            self.methods.add(method)
 
     def all_attributes(self) -> set[Property]:
         """set[Property]: Get all attributes, including inherited ones."""
@@ -1654,6 +1763,8 @@ class Class(Type):
         """
         Property: Add an attribute to the set of class attributes.
 
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+
         Raises:
             ValueError: if the attribute name already exist.
         """
@@ -1662,27 +1773,54 @@ class Class(Type):
                 raise ValueError(
                     f"A class cannot have two attributes with the same name: '{attribute.name}'."
                 )
-        attribute.owner = self
-        self.attributes.add(attribute)
+            attribute.owner = self
+            self.attributes.add(attribute)
 
     @property
     def is_abstract(self) -> bool:
-        """bool: Get whether the class is abstract."""
+        """Get whether the class is abstract.
+
+        Returns
+        -------
+        bool
+            True if the class is abstract, False otherwise.
+        """
+        # Return whether the class is abstract.
         return self.__is_abstract
 
     @is_abstract.setter
     def is_abstract(self, is_abstract: bool):
-        """bool: Set whether the class is abstract."""
+        """Set whether the class is abstract.
+
+        Parameters
+        ----------
+        is_abstract : bool
+            True if the class is abstract, False otherwise.
+        """
+        # Set whether the class is abstract.
         self.__is_abstract = is_abstract
 
     @property
     def is_read_only(self) -> bool:
-        """bool: Get whether the class is read only."""
+        """Get whether the class is read only.
+
+        Returns
+        -------
+        bool
+            True if the class is read only, False otherwise.
+        """
+        # Return whether the class is read only.
         return self.__is_read_only
 
     @is_read_only.setter
     def is_read_only(self, is_read_only: bool):
-        """bool: Set whether the class is read only."""
+        """Set whether the class is read only.
+
+        Parameters
+        ----------
+        is_read_only : bool
+            True if the class is read only, False otherwise.
+        """
         self.__is_read_only = is_read_only
 
     @property
