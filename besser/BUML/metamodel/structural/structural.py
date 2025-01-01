@@ -472,11 +472,6 @@ class Enumeration(DataType):
 
     synonyms : Optional[List[str]]
         The list of synonyms of the enumeration.
-
-    Methods
-    -------
-    add_literal(literal)
-        Add an enumeration literal to the set of enumeration literals associated with the enumeration.
     """
 
     def __init__(
@@ -537,9 +532,11 @@ class Enumeration(DataType):
                     "An enumeration cannot have two literals with the same name"
                 )
 
-            # Set the set of enumeration literals associated with the enumeration.
+            # Set the owner of each enumeration literal to the enumeration.
             for literal in literals:
                 literal.owner = self
+
+            # Set the set of enumeration literals associated with the enumeration.
             self.__literals = literals
 
         # If the set of enumeration literals is `None`, set it to an empty set.
@@ -1282,11 +1279,6 @@ class Method(TypedElement):
 
     synonyms : Optional[List[str]]
         The list of synonyms of the method.
-
-    Methods
-    -------
-    add_parameter(parameter)
-        Add a parameter to the set of parameters of the method.
     """
 
     def __init__(
@@ -1515,6 +1507,8 @@ class Class(Type):
 
     TODO: Should `__associations` and `__generalizations` be named `associations` and `generalizations`?
 
+    TODO: Should `parents` and `specializations` be named consistently (i.e. `parents` and `children` or `generalizations` and `specializations`)?
+
     Attributes
     ----------
     name : str
@@ -1569,10 +1563,6 @@ class Class(Type):
 
     synonyms: Optional[List[str]]
         The list of synonyms of the class.
-
-    Methods
-    -------
-    TODO
     """
 
     def __init__(
@@ -1640,9 +1630,9 @@ class Class(Type):
         # Check if the set of attributes is not `None`.
         if attributes is not None:
             # Define a set of names seen and a set of duplicates, and a counter for the number of 'id' attributes.
-            names_seen = set()
-            duplicates = set()
-            id_counter = 0
+            names_seen: Set[str] = set()
+            duplicates: Set[str] = set()
+            id_counter: int = 0
 
             # For each attribute in the set of attributes, check if the attribute name already exists.
             for attribute in attributes:
@@ -1666,9 +1656,11 @@ class Class(Type):
                     "A class cannot have more than one attribute marked as 'id'."
                 )
 
-            # Set the set of attributes of the class.
+            # Set the owner of the attributes to the class.
             for attribute in attributes:
                 attribute.owner = self
+
+            # Set the set of attributes of the class.
             self.__attributes = attributes
 
         # If the set of attributes is `None`, set it to an empty set.
@@ -1706,8 +1698,8 @@ class Class(Type):
         # Check if the set of methods is not `None`.
         if methods is not None:
             # Define a set of names seen and a set of duplicates.
-            names_seen = set()
-            duplicates = set()
+            names_seen: Set[str] = set()
+            duplicates: Set[str] = set()
 
             # For each method in the set of methods, check if the method name already exists.
             for method in methods:
@@ -1721,9 +1713,11 @@ class Class(Type):
                     f"A class cannot have methods with duplicate names: {', '.join(duplicates)}."
                 )
 
-            # Set the set of methods of the class.
+            # Set the owner of the methods to the class.
             for method in methods:
                 method.owner = self
+
+            # Set the set of methods of the class.
             self.__methods = methods
 
         # If the set of methods is `None`, set it to an empty set.
@@ -1751,12 +1745,25 @@ class Class(Type):
                 raise ValueError(
                     f"A class cannot have two methods with the same name: '{method.name}'."
                 )
+
+            # Set the owner of the method to the class.
             method.owner = self
+
+            # Add the method to the set of methods of the class.
             self.methods.add(method)
 
-    def all_attributes(self) -> set[Property]:
-        """set[Property]: Get all attributes, including inherited ones."""
-        inherited_attributes: set[Property] = self.inherited_attributes()
+    def all_attributes(self) -> Set[Property]:
+        """Get all attributes, including inherited ones.
+
+        Returns
+        -------
+        Set[Property]
+            The set of all attributes, including inherited ones.
+        """
+        # Get the set of inherited attributes.
+        inherited_attributes: Set[Property] = self.inherited_attributes()
+
+        # Return the union of the set of attributes and the set of inherited attributes.
         return self.__attributes | inherited_attributes
 
     def add_attribute(self, attribute: Property):
@@ -1768,12 +1775,17 @@ class Class(Type):
         Raises:
             ValueError: if the attribute name already exist.
         """
+        # Check if the set of attributes is not `None`.
         if self.attributes is not None:
             if attribute.name in [attribute.name for attribute in self.attributes]:
                 raise ValueError(
                     f"A class cannot have two attributes with the same name: '{attribute.name}'."
                 )
+
+            # Set the owner of the attribute to the class.
             attribute.owner = self
+
+            # Add the attribute to the set of attributes of the class.
             self.attributes.add(attribute)
 
     @property
@@ -1821,104 +1833,283 @@ class Class(Type):
         is_read_only : bool
             True if the class is read only, False otherwise.
         """
+        # Set whether the class is read only.
         self.__is_read_only = is_read_only
 
     @property
-    def associations(self) -> set:
-        """set[Association]: Get the set of associations involving the class."""
+    def associations(self) -> Set[Association]:
+        """Get the set of associations involving the class.
+
+        TODO: Refer to this as `UndefinedName_Warning`.
+        The Ruff linter and the Pylance language server warns about "Undefined name" of the type (which will be defined later in the code).
+        Ignore it since it's a false positive.
+
+        Returns
+        -------
+        set[Association]
+            The set of associations involving the class.
+        """
+        # Return the set of associations involving the class.
         return self.__associations
 
-    def _add_association(self, association):
-        """Association: Add an association to the set of class associations."""
+    def _add_association(self, association: Association):
+        """Add an association to the set of class associations.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Parameters
+        ----------
+        association : Association
+            The association to be added to the set of class associations.
+        """
         self.__associations.add(association)
 
-    def _delete_association(self, association):
-        """Association: Remove an association to the set of class associations."""
+    def _delete_association(self, association: Association):
+        """Remove an association to the set of class associations.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Parameters
+        ----------
+        association : Association
+            The association to be removed from the set of class associations.
+        """
         self.__associations.discard(association)
 
     @property
-    def generalizations(self) -> set:
-        """set[Generalization]: Get the set of generalizations involving the class."""
+    def generalizations(self) -> Set[Generalization]:
+        """Get the set of generalizations involving the class.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Returns
+        -------
+        set[Generalization]
+            The set of generalizations involving the class.
+        """
+        # Return the set of generalizations involving the class.
         return self.__generalizations
 
-    def _add_generalization(self, generalization):
-        """Generalization: Add a generalization to the set of class generalizations."""
+    def _add_generalization(self, generalization: Generalization):
+        """Add a generalization to the set of class generalizations.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Parameters
+        ----------
+        generalization : Generalization
+            The generalization to be added to the set of class generalizations.
+        """
         self.__generalizations.add(generalization)
 
-    def _delete_generalization(self, generalization):
-        """Generalization: Remove a generalization to the set of class generalizations."""
+    def _delete_generalization(self, generalization: Generalization):
+        """Remove a generalization to the set of class generalizations.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Parameters
+        ----------
+        generalization : Generalization
+            The generalization to be removed from the set of class generalizations.
+        """
         self.__generalizations.discard(generalization)
 
-    def inherited_attributes(self) -> set[Property]:
-        """set[Property]: Get the set of inherited attributes."""
-        inherited_attributes = set()
+    def inherited_attributes(self) -> Set[Property]:
+        """Get the set of inherited attributes of the class.
+
+        Returns
+        -------
+        Set[Property]
+            The set of inherited attributes of the class.
+        """
+        # Initialize the set of inherited attributes.
+        inherited_attributes: Set[Property] = set()
+
+        # For each parent class of the class, add the attributes to the set of inherited attributes.
         for parent in self.all_parents():
             inherited_attributes.update(parent.attributes)
+
+        # Return the set of inherited attributes.
         return inherited_attributes
 
-    def association_ends(self) -> set:
-        """set[Property]: Get the set of association ends of the class."""
-        ends = set()
+    def association_ends(self) -> Set[Property]:
+        """Get the set of direct association ends of the class.
+
+        Returns
+        -------
+        Set[Property]
+            The set of association ends of the class.
+        """
+        # Initialize the set of association ends.
+        ends: Set[Property] = set()
+
+        # For each association involving the class, add the ends to the set of association ends.
         for association in self.__associations:
             aends = association.ends
             ends.update(aends)
-            l_aends = list(aends)
+
+            # Check if the association ends are not binary and do not have the same type at both ends.
+            l_aends: List[Property] = list(aends)
             if not (len(l_aends) == 2 and l_aends[0].type == l_aends[1].type):
+                # Remove the ends that are not valid association ends.
                 for end in aends:
                     if end.type == self:
                         ends.discard(end)
+
+        # Return the set of association ends.
         return ends
 
-    def all_association_ends(self) -> set[Property]:
-        """set[Property]: Get the set of direct and indirect association ends of the class."""
-        all_ends = self.association_ends()
+    def all_association_ends(self) -> Set[Property]:
+        """Get the set of direct and indirect association ends of the class.
+
+        Returns
+        -------
+        Set[Property]
+            The set of association ends of the class.
+        """
+        # Initialize the set of all association ends as the set of direct association ends.
+        all_ends: Set[Property] = self.association_ends()
+
+        # For each direct parent class of the class, add the set of the parent's association ends to the class' set of all association ends.
         for parent in self.all_parents():
-            ends = parent.association_ends()
+            ends: Set[Property] = parent.association_ends()
             all_ends.update(ends)
+
+        # Return the set of all association ends.
         return all_ends
 
-    def parents(self) -> set:
-        """set[Class]: Get the set of direct parents of the class."""
-        parents = set()
+    def parents(self) -> Set[Class]:
+        """Get the set of direct generalizations (parents) of the class.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Returns
+        -------
+        Set[Class]
+            The set of direct parents of the class.
+        """
+        # Initialize the set of parents.
+        parents: Set[Class] = set()
+
+        # For each generalization involving the class, add the general to the set of parents.
         for generalization in self.__generalizations:
             if generalization.general != self:
                 parents.add(generalization.general)
+
+        # Return the set of parents.
         return parents
 
-    def all_parents(self) -> set:
-        """set[Class]: Get the set of direct and indirect parents of the class."""
-        all_parents = set()
-        all_parents.update(self.parents())
+    def all_parents(self) -> Set[Class]:
+        """Get the set of direct and indirect generalizations (parents) of the class.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Returns
+        -------
+        Set[Class]
+            The set of direct and indirect parents of the class.
+        """
+        # Initialize the set of all parents as the set of direct parents.
+        all_parents: Set[Class] = self.parents()
+
+        # For each direct parent of the class, add the parent to the set of all parents.
         for parent in self.parents():
             all_parents.update(parent.all_parents())
+
+        # Return the set of all parents.
         return all_parents
 
-    def specializations(self) -> set:
-        """set[Class]: Get the set of direct specializations (children) of the class."""
-        specializations = set()
+    def specializations(self) -> Set[Class]:
+        """Get the set of direct specializations (children) of the class.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Returns
+        -------
+        Set[Class]
+            The set of direct specializations of the class.
+        """
+        # Initialize the set of specializations.
+        specializations: Set[Class] = set()
+
+        # For each generalization involving the class, add the specialization to the set of specializations (if it is not the class itself).
         for generalization in self.__generalizations:
             if generalization.specific != self:
                 specializations.add(generalization.specific)
+
+        # Return the set of specializations.
         return specializations
 
-    def all_specializations(self) -> set:
-        """set[Class]: Get the set of direct and indirect specializations (children) of the class."""
-        all_spec = set()
-        all_spec.update(self.specializations())
+    def all_specializations(self) -> Set[Class]:
+        """Get the set of direct and indirect specializations (children) of the class.
+
+        TODO: Refer to the `UndefinedName_Warning` issue.
+
+        Returns
+        -------
+        Set[Class]
+            The set of direct and indirect specializations of the class.
+        """
+        # Initialize the set of all specializations as the set of direct specializations.
+        all_spec: Set[Class] = self.specializations()
+
+        # For each direct specialization of the class, add the specialization to the set of all specializations.
         for specialization in self.specializations():
             all_spec.update(specialization.all_specializations())
+
+        # Return the set of all specializations.
         return all_spec
 
-    def id_attribute(self) -> Property:
-        """Property: Get the id attribute of the class."""
+    def id_attribute(self) -> Optional[Property]:
+        """Get the attribute marked as 'id' of the class.
+
+        TODO: The original solution was to return `None` if the class does not have an 'id' attribute.
+        However, this could be misleading since the method originally returns a `Property` object (not specified as nullable). Therefore, the return type should be `Optional[Property]`.
+
+        TODO: The original solution was to return the first 'id' attribute found in the class.
+        ```python
         for attribute in self.attributes:
             if attribute.is_id:
                 return attribute
-        return None
+        ```
+        What about the case where the class has more than one 'id' attribute? The new implementation raises a `ValueError` in this case, though further decisions should be made.
 
-    def __repr__(self):
+        Returns
+        -------
+        Optional[Property]
+            The attribute marked as 'id' of the class.
+
+        Raises
+        ------
+        ValueError
+            If the class has more than one attribute marked as 'id'.
+        """
+        # Get the set of 'id' attributes of the class.
+        id_attributes: Set[Property] = {
+            attribute for attribute in self.attributes if attribute.is_id
+        }
+
+        # Check if the class has more than one attribute marked as 'id'.
+        if len(id_attributes) > 1:
+            raise ValueError(
+                "A class cannot have more than one attribute marked as 'id'."
+            )
+
+        # Return the 'id' attribute of the class if it exists, otherwise return `None`.
+        return next(iter(id_attributes), None)
+
+    def __repr__(self) -> str:
+        """Return a string representation of the `Class` object.
+
+        The string representation includes the `name`, `attributes`, `methods`, `is_abstract`, `is_read_only`, `timestamp`, and `synonyms` of the `Class` object.
+
+        Returns
+        -------
+        str
+            A string representation of the `Class` object.
+        """
+        # Return the string representation of the `Class` object.
         return f"Class({self.name}, {self.attributes}, {self.methods}, {self.timestamp}, {self.synonyms})"
-
 
 class Association(NamedElement):
     """Represents an association between classes.
