@@ -323,7 +323,7 @@ class PrimitiveDataType(DataType):
 
 
 # Define a set of primitive data types.
-# TODO: Should this encapsulation using walrus operator (:=) be kept? It should function the same way as the original solution, but it puts those PrimitiveDataType instances into the context of the primitive_data_types set (and is also available in the global context). See https://peps.python.org/pep-0572/ for more details. See also https://realpython.com/python-walrus-operator/ for a more readable explanation.
+# TODO: Should this encapsulation using walrus operator (:=) be kept? It should function the same way as the original solution, but it puts those PrimitiveDataType instances into the context of the primitive_data_types set (and is also available in the global context). See more: https://peps.python.org/pep-0572/. See also https://realpython.com/python-walrus-operator/ for a more readable explanation.
 primitive_data_types: Set[PrimitiveDataType] = {
     (StringType := PrimitiveDataType("str")),
     (IntegerType := PrimitiveDataType("int")),
@@ -1403,7 +1403,7 @@ class Method(TypedElement):
     def add_parameter(self, parameter: Parameter):
         """Add a parameter to the set of parameters of the method.
 
-        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue (see the `add_literal` method in the `Enumeration` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1727,7 +1727,7 @@ class Class(Type):
     def add_method(self, method: Method):
         """Add a method to the set of methods of the class.
 
-        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue (see the `add_literal` method in the `Enumeration` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1770,7 +1770,7 @@ class Class(Type):
         """
         Property: Add an attribute to the set of class attributes.
 
-        TODO: Refer to the `Type_Safety_of_Add_Methods` issue.
+        TODO: Refer to the `Type_Safety_of_Add_Methods` issue (see the `add_literal` method in the `Enumeration` class, in `structural.py`).
 
         Raises:
             ValueError: if the attribute name already exist.
@@ -1837,12 +1837,15 @@ class Class(Type):
         self.__is_read_only = is_read_only
 
     @property
-    def associations(self) -> Set[Association]:
+    def associations(self) -> Set["Association"]:
         """Get the set of associations involving the class.
 
-        TODO: Refer to this as `UndefinedName_Warning`.
-        The Ruff linter and the Pylance language server warns about "Undefined name" of the type (which will be defined later in the code).
-        Ignore it since it's a false positive.
+        NOTE: Refer to this as `Forward_Reference` (as this issues happens in other classes as well).
+        See more: https://peps.python.org/pep-0484/#forward-references.
+        See also https://stackoverflow.com/questions/53605806/mypy-flake8-is-there-any-way-to-surpress-warning-of-f821-undefined-name for a similar issue.
+
+        By putting the type in quotes, we can avoid the issue with the Ruff linter and the Pylance language server.
+        If not, the Ruff linter and the Pylance language server would warn about "Undefined name" of the type (which will be defined later in the code).
 
         Returns
         -------
@@ -1852,10 +1855,10 @@ class Class(Type):
         # Return the set of associations involving the class.
         return self.__associations
 
-    def _add_association(self, association: Association):
+    def _add_association(self, association: "Association"):
         """Add an association to the set of class associations.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1864,10 +1867,10 @@ class Class(Type):
         """
         self.__associations.add(association)
 
-    def _delete_association(self, association: Association):
+    def _delete_association(self, association: "Association"):
         """Remove an association to the set of class associations.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1877,10 +1880,10 @@ class Class(Type):
         self.__associations.discard(association)
 
     @property
-    def generalizations(self) -> Set[Generalization]:
+    def generalizations(self) -> Set["Generalization"]:
         """Get the set of generalizations involving the class.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Returns
         -------
@@ -1890,10 +1893,10 @@ class Class(Type):
         # Return the set of generalizations involving the class.
         return self.__generalizations
 
-    def _add_generalization(self, generalization: Generalization):
+    def _add_generalization(self, generalization: "Generalization"):
         """Add a generalization to the set of class generalizations.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1902,10 +1905,10 @@ class Class(Type):
         """
         self.__generalizations.add(generalization)
 
-    def _delete_generalization(self, generalization: Generalization):
+    def _delete_generalization(self, generalization: "Generalization"):
         """Remove a generalization to the set of class generalizations.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Parameters
         ----------
@@ -1978,10 +1981,10 @@ class Class(Type):
         # Return the set of all association ends.
         return all_ends
 
-    def parents(self) -> Set[Class]:
+    def parents(self) -> Set["Class"]:
         """Get the set of direct generalizations (parents) of the class.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Returns
         -------
@@ -1999,10 +2002,10 @@ class Class(Type):
         # Return the set of parents.
         return parents
 
-    def all_parents(self) -> Set[Class]:
+    def all_parents(self) -> Set["Class"]:
         """Get the set of direct and indirect generalizations (parents) of the class.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Returns
         -------
@@ -2019,10 +2022,10 @@ class Class(Type):
         # Return the set of all parents.
         return all_parents
 
-    def specializations(self) -> Set[Class]:
+    def specializations(self) -> Set["Class"]:
         """Get the set of direct specializations (children) of the class.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Returns
         -------
@@ -2040,10 +2043,10 @@ class Class(Type):
         # Return the set of specializations.
         return specializations
 
-    def all_specializations(self) -> Set[Class]:
+    def all_specializations(self) -> Set["Class"]:
         """Get the set of direct and indirect specializations (children) of the class.
 
-        TODO: Refer to the `UndefinedName_Warning` issue.
+        NOTE: Refer to the `Forward_Reference` issue (see the `associations` getter of the `Class` class, in `structural.py`).
 
         Returns
         -------
